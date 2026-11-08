@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#171b20">
+<title>Attack on Titan: Survival — Update 2.2 Detail Build</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#171b20;color:#fff;font-family:system-ui,Arial;touch-action:none}
+canvas{display:block;width:100vw;height:100vh}
+#hud{position:fixed;top:10px;left:10px;pointer-events:none}
+.panel{background:#101820d9;border:1px solid #ffffff35;border-radius:10px;padding:8px 12px;font-size:12px;box-shadow:0 2px 8px #0005}
+#tip{position:fixed;top:12px;left:50%;transform:translateX(-50%);text-align:center;max-width:45vw;font-size:12px;color:#fff;background:#101820b8;padding:7px 10px;border-radius:9px;pointer-events:none}
+#move{position:fixed;bottom:16px;left:16px;display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(2,50px);gap:6px}
+button{border:1px solid #ffffff65;color:white;background:#17232ddd;border-radius:14px;min-width:0;height:50px;font-weight:700;font-size:17px;box-shadow:0 3px 8px #0006;touch-action:none}
+button:active,.active{background:#a64032}.blank{visibility:hidden}
+#combat{position:fixed;inset:0;z-index:10;background:#080d12f2;display:none;align-items:center;justify-content:center;padding:18px;pointer-events:auto;font-size:14px}
+#combat .battle-card{width:min(620px,100%);max-height:94vh;overflow:auto;background:#17232af7;border:1px solid #ffffff55;border-radius:18px;padding:20px;box-shadow:0 10px 40px #000b}
+#combat h2{margin:0 0 6px;text-align:center;font-size:24px}
+#combat .battle-subtitle{text-align:center;color:#e7c3ad;margin:0 0 16px}
+.fighter{margin-top:12px}.fighter b{display:block;margin-bottom:6px}
+.stat{display:flex;align-items:center;gap:9px;margin:7px 0}.stat span{width:90px;color:#d5dde1;font-size:12px}
+.track{height:12px;flex:1;background:#3a4248;border-radius:8px;overflow:hidden}
+.fill{height:100%;width:100%;border-radius:8px}
+.hp{background:#c64b46}.stamina{background:#d5a83d}
+#combat .enemy-name{color:#f0c4a8}
+.attack-list{display:grid;grid-template-columns:1fr;gap:9px;margin-top:18px}
+.attack-btn{height:auto;min-height:58px;text-align:left;padding:10px 13px;font-size:14px;background:#263b47}
+.attack-btn small{display:block;color:#d4dce0;font-weight:400;margin-top:3px}
+#battleMessage{text-align:center;min-height:24px;color:#f5d69b;margin:14px 0 0}
+#move{z-index:2}
+#overlay{position:fixed;inset:0;background:#111e;display:flex;align-items:center;justify-content:center;padding:22px;z-index:40;overflow:auto}#overlay .card{max-height:94vh;overflow:auto}#overlay label{display:block;color:#e4d2ae;font-size:13px}#overlay input,#overlay select{background:#24333b;color:#fff;border:1px solid #ffffff55}.primary:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.35)}
+.card{max-width:440px;width:100%;background:#17232af2;border:1px solid #ffffff35;border-radius:18px;padding:22px;box-shadow:0 10px 40px #0009}
+h1{font-size:25px;margin:0 0 8px}p{color:#d1dbe0;line-height:1.45;font-size:14px}
+.primary{background:#a64032;width:100%;height:48px;font-size:15px;margin-top:8px}
+#topActions{position:fixed;top:10px;right:10px;display:flex;gap:6px;z-index:4}
+#topActions button{height:38px;padding:0 10px;font-size:12px}
+#statsHud{position:fixed;left:10px;top:66px;background:#101820df;border:1px solid #ffffff35;border-radius:10px;padding:8px 10px;font-size:12px;min-width:170px;pointer-events:none}
+#xpTrack{height:7px;background:#38444b;border-radius:8px;overflow:hidden;margin-top:5px}
+#xpFill{height:100%;width:0;background:#d6b64c}
+#move{z-index:3}
+#gateAction{position:fixed;bottom:18px;right:14px;z-index:4;display:none;padding:0 15px;height:46px;background:#6d5134}
+#skillPanel{position:fixed;inset:0;z-index:12;background:#080d12eF;display:none;align-items:center;justify-content:center;padding:14px}
+#skillPanel .skillCard{width:min(520px,100%);max-height:90vh;overflow:auto;background:#17232af7;border:1px solid #ffffff55;border-radius:18px;padding:18px}
+.skillRow{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #ffffff22;padding:10px 0}
+.skillRow button{height:38px;padding:0 12px}
+#skillPanel .close{width:100%;margin-top:12px}
+#combat .enemy-stamina-row{display:none}
+#combat .attack-btn:disabled{opacity:.4}
+#dialogueHint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:#182b32f2;border:1px solid #e8d3a8aa;color:#fff;padding:11px 16px;border-radius:10px;font-size:13px;display:none;z-index:8;pointer-events:auto;cursor:pointer;box-shadow:0 4px 18px #0008}
+#missionBox,#cinematic{position:fixed;inset:0;z-index:25;display:none;align-items:center;justify-content:center;padding:20px;background:#080d12ed}
+#missionBox .mission-card{width:min(520px,100%);background:#18262df5;border:1px solid #d7c39b88;border-radius:18px;padding:22px;box-shadow:0 12px 45px #000b}
+#missionBox h2{margin:0 0 8px;color:#e8d3a8}#missionBox p{font-size:15px;line-height:1.55}
+#missionNext{width:100%;background:#8d4937;margin-top:10px}.dialogueChoices{display:grid;grid-template-columns:1fr;gap:7px;margin-top:10px}.dialogueChoices button{height:auto;min-height:40px;font-size:13px;padding:8px;background:#30434d}
+#cinematic{background:#000;flex-direction:column;text-align:center;overflow:hidden}
+#cinematicTitle{font-family:Georgia,serif;font-size:clamp(25px,6vw,48px);letter-spacing:3px;color:#eee;margin:0 0 14px;text-shadow:0 2px 12px #fff4}
+#cinematicText{max-width:620px;color:#ddd;font-size:16px;line-height:1.5;z-index:2;padding:0 18px}
+#cinematicStage{position:relative;width:min(1100px,96vw);height:min(62vh,620px);margin:8px auto 18px;overflow:hidden;background:linear-gradient(#687b89 0%,#c2a88a 48%,#77715e 49%,#292822 100%);border:1px solid #ffffff44;border-radius:8px;display:none;box-shadow:0 18px 60px #000b;isolation:isolate}
+.cine-city{position:absolute;inset:48% 0 0;background:repeating-linear-gradient(90deg,transparent 0 9%,#4a443c 9.2% 9.6%,transparent 10% 18%),linear-gradient(#62594b,#282620);clip-path:polygon(0 20%,8% 20%,8% 0,14% 0,14% 18%,24% 18%,24% 5%,31% 5%,31% 25%,43% 25%,43% 8%,51% 8%,51% 22%,63% 22%,63% 2%,71% 2%,71% 20%,83% 20%,83% 0,90% 0,90% 20%,100% 20%,100% 100%,0 100%);z-index:0}
+.cine-wall{position:absolute;left:-2%;right:-2%;bottom:23%;height:34%;background:repeating-linear-gradient(0deg,#85847b 0 17px,#65645d 18px 21px);border-top:12px solid #b2a891;box-shadow:0 -12px 26px #0009;z-index:3;transform:perspective(600px) rotateX(-2deg)}
+.cine-wall:before{content:'';position:absolute;left:0;right:0;top:-22px;height:16px;background:repeating-linear-gradient(90deg,#c4b99f 0 48px,#77766e 49px 54px)}
+.cine-gate{position:absolute;z-index:4;left:43%;bottom:23%;width:14%;height:25%;background:linear-gradient(90deg,#211d1b,#4c382c,#211d1b);border:10px solid #a18c6a;box-shadow:inset 0 0 0 4px #c5ae80,0 0 20px #000;transform-origin:bottom;transition:transform .5s}
+.cine-colossal{position:absolute;z-index:2;left:40%;bottom:23%;width:16%;height:36.5%;background:linear-gradient(90deg,#492b2a 0%,#a85d4d 18%,#d28a70 48%,#9b5146 76%,#452927 100%);border-radius:45% 45% 12% 12%;box-shadow:0 0 65px #e6a17a88;display:none;transform:translateY(45%);animation:colossalRise 2.1s cubic-bezier(.2,.7,.2,1) forwards}
+.cine-colossal{left:38%;width:24%;height:38%;bottom:23%;border-radius:48% 48% 10% 10%;background:linear-gradient(90deg,#492b2a 0%,#985344 16%,#d28a70 48%,#a75d4c 78%,#452927 100%)}
+.cine-colossal-arms{position:absolute;z-index:5;left:0;right:0;bottom:0;height:100%;display:none;pointer-events:none}
+.cine-colossal-arm{position:absolute;bottom:43%;width:23%;height:5.2%;border-radius:35px;background:linear-gradient(180deg,#efb197 0%,#d18a72 38%,#a75e4f 78%,#713d36 100%);box-shadow:inset 0 3px 5px #f5c0a588,inset 0 -4px 5px #48272288,0 7px 9px #24171399}
+.cine-colossal-arm.left{left:27%;transform:rotate(7deg);transform-origin:right center}
+.cine-colossal-arm.right{right:27%;transform:rotate(-7deg);transform-origin:left center}
+.cine-colossal-hand{position:absolute;bottom:39.5%;width:5.8%;height:4.2%;border-radius:42% 42% 30% 30%;background:linear-gradient(180deg,#efb197,#cf8068 65%,#88483e);box-shadow:0 4px 5px #24171399;z-index:2}
+.cine-colossal-hand.left{left:25.5%;transform:rotate(8deg)}
+.cine-colossal-hand.right{right:25.5%;transform:rotate(-8deg)}
+.cine-colossal-hand:after{content:"";position:absolute;left:8%;right:8%;bottom:-85%;height:88%;border-radius:0 0 8px 8px;background:repeating-linear-gradient(90deg,#cf8068 0 16%,#88483e 17% 21%,#cf8068 22% 39%);filter:drop-shadow(0 2px 2px #24171388)}
+.cine-colossal-hand:before{content:"";position:absolute;left:-12%;right:-12%;top:5%;height:32%;border-radius:50%;background:#efb197;box-shadow:0 2px 3px #713d36aa}
+#cinematicStage[data-scene="1"] .cine-colossal-arms,#cinematicStage[data-scene="2"] .cine-colossal-arms,#cinematicStage[data-scene="3"] .cine-colossal-arms{display:block}
+#cinematicStage[data-scene="2"] .cine-colossal-arms,#cinematicStage[data-scene="3"] .cine-colossal-arms{animation:colossalLean .9s ease-in-out infinite alternate}
+@keyframes colossalLean{to{transform:translateY(2px)}}
+.cine-colossal:before{content:'';position:absolute;left:29%;top:-11%;width:42%;height:17%;border-radius:48% 48% 42% 42%;background:radial-gradient(ellipse at 50% 35%,#e6a487 0 20%,#b96d5b 52%,#68372f 100%);box-shadow:0 0 28px #f1b08a66}
+.cine-colossal:after{content:'';position:absolute;left:-42%;top:24%;width:184%;height:10%;background:linear-gradient(#d08a70,#8e4b40);border-radius:30px;transform:rotate(-12deg);box-shadow:0 9px 12px #321b1b88}
+.cine-break{position:absolute;z-index:6;left:44%;bottom:17%;width:12%;height:46%;border-left:9px solid #d3c5a6;border-right:7px solid #e2d2b0;transform:rotate(16deg);display:none;filter:drop-shadow(0 0 8px #f90);clip-path:polygon(0 0,100% 8%,70% 100%,25% 85%);animation:wallBurst .9s ease-out both}
+.cine-person{position:absolute;z-index:7;bottom:23%;width:14px;height:39px;background:linear-gradient(90deg,#26313b,#60717b);border-radius:8px 8px 2px 2px;box-shadow:0 -9px 0 -1px #d2b58b;transform-origin:bottom}
+.cine-person.a{left:24%}.cine-person.b{left:33%}.cine-person.c{left:42%}
+.cine-titan{position:absolute;z-index:7;bottom:23%;left:51%;width:62px;height:132px;background:linear-gradient(90deg,#68483e,#bd8068,#70473d);border-radius:45% 45% 10% 10%;box-shadow:0 0 16px #b57b64;display:none;animation:titanLurch 1.2s ease-in-out infinite alternate}
+.cine-titan:before{content:'';position:absolute;top:-12px;left:13px;width:29px;height:28px;background:#bd8068;border-radius:50%}
+.cine-rubble{position:absolute;z-index:8;left:47%;bottom:22%;width:22px;height:17px;background:#b4aa91;box-shadow:inset -4px -4px #6e6a60;display:none}
+.cine-rubble.r1{--dx:-110px;--dy:-95px}.cine-rubble.r2{--dx:80px;--dy:-130px;width:30px;height:20px}.cine-rubble.r3{--dx:15px;--dy:-70px;width:14px;height:13px}
+.cine-dust{position:absolute;z-index:9;left:34%;right:34%;bottom:20%;height:42%;background:radial-gradient(ellipse at center,#c5b69a99,transparent 70%);opacity:0;pointer-events:none}
+.cine-hand{position:absolute;z-index:10;left:47%;bottom:31%;width:78px;height:24px;border-radius:20px;background:linear-gradient(#c68a70,#75483f);transform:rotate(-35deg) scale(.2);transform-origin:right center;opacity:0}
+#cinematicStage[data-scene="1"] .cine-colossal{animation:colossalRise 2.1s cubic-bezier(.2,.7,.2,1) forwards}
+#cinematicStage[data-scene="2"] .cine-colossal{transform:translateY(0);animation:colossalStrike .9s ease-in-out infinite alternate}
+#cinematicStage[data-scene="2"] .cine-break{display:block}
+#cinematicStage[data-scene="2"] .cine-gate{transform:rotateX(68deg) translateY(25px)}
+#cinematicStage[data-scene="2"] .cine-rubble{display:block;animation:rubbleFly 1.2s ease-out infinite alternate}
+#cinematicStage[data-scene="2"] .cine-dust{opacity:1;animation:dustRoll 2s ease-out infinite}
+#cinematicStage[data-scene="3"] .cine-colossal,
+#cinematicStage[data-scene="3"] .cine-colossal-arms,
+#cinematicStage[data-scene="3"] .giant-measure{display:none!important;opacity:0!important}
+#cinematicStage[data-scene="3"] .cine-titan{display:block;animation:titanEnter 3s ease-out both,titanLurch 1s 3s infinite alternate}
+#cinematicStage[data-scene="3"] .cine-person.a,#cinematicStage[data-scene="3"] .cine-person.b{animation:victimFlee 3.2s ease-out both}
+#cinematicStage[data-scene="3"] .cine-person.c{animation:victimGrabbed 3.1s 1.1s ease-in-out both}
+#cinematicStage[data-scene="3"] .cine-hand{opacity:1;animation:grabPeople 2.4s 1s ease-in-out infinite alternate}
+#cinematicStage[data-scene="3"] .cine-dust{opacity:.9;animation:dustRoll 2s ease-out infinite}
+@keyframes colossalRise{to{transform:translateY(0)}}
+@keyframes colossalStrike{to{transform:translateY(0) rotate(-3deg)}}
+@keyframes wallBurst{0%{opacity:0;transform:rotate(16deg) scaleY(.2)}100%{opacity:1;transform:rotate(16deg) scaleY(1)}}
+@keyframes rubbleFly{to{transform:translate(var(--dx),var(--dy)) rotate(240deg);opacity:.25}}
+@keyframes dustRoll{0%{transform:scale(.5);opacity:.1}55%{transform:scale(1.5);opacity:.9}100%{transform:scale(2);opacity:.2}}
+@keyframes titanEnter{from{left:64%;transform:scale(.78)}to{left:51%;transform:scale(1)}}
+@keyframes grabPeople{from{transform:rotate(22deg) scale(.2);left:48%}to{transform:rotate(-12deg) scale(1.15);left:37%}}
+@keyframes titanLurch{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes victimFlee{0%{opacity:1;transform:translateX(0) scale(1)}70%{opacity:1;transform:translateX(-85px) scale(.96)}100%{opacity:1;transform:translateX(-125px) scale(.92)}}
+@keyframes victimGrabbed{0%{opacity:1;transform:translateX(0) scale(1)}42%{opacity:1;transform:translateX(-48px) scale(.96)}68%{opacity:1;transform:translate(12px,-25px) scale(.82) rotate(18deg)}100%{opacity:0;transform:translate(8px,-66px) scale(.25) rotate(38deg)}}
+@keyframes titanLurch{from{transform:translateX(0)}to{transform:translateX(-9px)}}
+.wall-measure{position:absolute;right:5%;top:8px;color:#f0e7d3;font:bold 12px system-ui;text-shadow:0 2px 4px #000;letter-spacing:1px}
+.giant-measure{position:absolute;z-index:5;left:57%;top:27%;color:#fff1d9;font:bold 12px system-ui;text-shadow:0 2px 5px #000}
+.giant-neck{position:absolute;left:38%;top:2%;width:24%;height:18%;background:linear-gradient(90deg,#754039,#d18a70,#754039);border-radius:45%}
+.giant-arm{position:absolute;top:24%;width:18%;height:48%;border-radius:45%;background:linear-gradient(90deg,#713e36,#d18b70,#81463b);box-shadow:inset 5px 0 8px #49272266}
+.giant-arm.left{left:-9%;transform:rotate(13deg)}.giant-arm.right{right:-9%;transform:rotate(-9deg)}
+.giant-torso-line{position:absolute;left:20%;right:20%;top:36%;height:30%;border-top:2px solid #f0b09666;border-bottom:2px solid #5d302b66;border-radius:45%}
+.cine-person:before{content:"";position:absolute;left:3px;top:-12px;width:9px;height:11px;border-radius:50%;background:linear-gradient(90deg,#9c755c,#e0bd9b)}
+.cine-person:after{content:"";position:absolute;left:1px;top:13px;width:12px;height:3px;background:#a7a18d;box-shadow:0 7px 0 #8e8a79}
+.cine-titan:after{content:"";position:absolute;left:-12px;top:31px;width:86px;height:15px;border-radius:12px;background:linear-gradient(#bd8068,#75483e);transform:rotate(-16deg);transform-origin:right center;box-shadow:0 2px 5px #0005}
+#cinematicNext{width:min(360px,90%);background:#8d4937;z-index:3}
+@media(max-width:600px){#cinematicStage{height:34vh}.cine-colossal{width:24%;left:38%}.cine-colossal-arm{width:23%}}
+@media(max-width:600px){#tip{top:112px;max-width:90vw}#statsHud{top:60px}#topActions{top:auto;bottom:78px;right:10px;flex-direction:column}#topActions button{height:34px}#move{transform:scale(.88);transform-origin:bottom left}}
+
+/* UPDATE 1.18 — simple round head, no facial sculpt or features */
+#cinematicStage .giant-neck{
+  position:absolute!important;
+  left:27%!important; top:-37%!important;
+  width:46%!important; height:46%!important;
+  border-radius:50%!important;
+  overflow:hidden!important;
+  background:radial-gradient(circle at 34% 27%,#e6a080 0%,#c87861 38%,#985043 72%,#572b28 100%)!important;
+  box-shadow:inset -10px -12px 18px #32191888,inset 7px 6px 12px #f2b69a55,0 7px 15px #160e0dcc!important;
+  filter:drop-shadow(0 5px 7px #1b1110aa)!important;
+}
+#cinematicStage .giant-neck:before,
+#cinematicStage .giant-neck:after{content:none!important;display:none!important}
+#cinematicStage .giant-neck *{display:none!important}
+@media(max-width:600px){
+  #cinematicStage .giant-neck{left:27%!important;top:-37%!important;width:46%!important;height:46%!important}
+}
+
+#upmControls{position:fixed;right:14px;bottom:14px;z-index:6;display:none;grid-template-columns:repeat(2,76px);gap:7px;touch-action:none}
+#upmControls button{height:48px;font-size:12px;padding:4px;background:#172b36ed;border-color:#d9e2e866}
+#upmControls button.hook-selected{background:#9a6932;border-color:#ffe0a3}
+#upmControls button.gas-active{background:#28794f;border-color:#9be0b5}
+#upmStatus{position:fixed;right:14px;bottom:125px;z-index:6;width:158px;padding:8px 10px;border-radius:10px;background:#101820df;border:1px solid #ffffff35;font-size:11px;display:none;pointer-events:none}
+.upm-track{height:7px;background:#3b454a;border-radius:8px;overflow:hidden;margin:3px 0 7px}
+.upm-fill{height:100%;width:100%;background:#39a9c5}
+#bladeLeftFill{background:#65b77c}#bladeRightFill{background:#65b77c}
+#upmHint{font-size:10px;color:#d7dfe2;line-height:1.25}
+#dialogueHint{z-index:25;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#shadisTalkButton{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:28;display:none;width:min(340px,86vw);height:54px;border:2px solid #e9d3a5;border-radius:15px;background:linear-gradient(180deg,#8b5038,#5d3028);box-shadow:0 5px 22px #000b,inset 0 1px #ffffff55;font-size:15px;letter-spacing:.5px;touch-action:manipulation}
+#upmStatus{width:190px;padding:10px 11px;border:1px solid #d9c49a88;box-shadow:0 5px 18px #0008;background:linear-gradient(145deg,#17252cF2,#0d141af2)}
+#upmStatus .upm-heading{display:flex;align-items:center;justify-content:space-between;color:#f0d9a8;font-size:12px;margin-bottom:5px}
+#upmStatus .upm-sub{font-size:10px;color:#aebdc3;margin:3px 0 7px}
+#upmStatus .upm-row{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#e5e9e8}
+#upmStatus .upm-track{height:7px;background:#37444a;border:1px solid #ffffff20;border-radius:8px;overflow:hidden;margin:3px 0 7px}
+#upmHint{padding-top:6px;border-top:1px solid #ffffff20;margin-top:5px}
+@media(max-width:600px){#shadisTalkButton{bottom:calc(16px + env(safe-area-inset-bottom));height:52px}#upmStatus{right:8px;bottom:205px;width:160px;font-size:10px}#upmControls{bottom:10px}}
+@media(max-width:600px){#upmControls{right:9px;bottom:10px;grid-template-columns:repeat(2,68px)}#upmControls button{height:45px;font-size:11px}#upmStatus{right:9px;bottom:112px;width:145px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud"><div class="panel"><b>ATTACK ON TITAN: SURVIVAL</b><br>📍 Район: Трост</div></div>
+<div id="tip">Найди большие ворота Троста. За стеной находятся титаны.</div>
+<div id="combat">
+ <div class="battle-card">
+  <h2>БОЙ С ТИТАНОМ</h2>
+  <p class="battle-subtitle" id="battleEnemyName">Титан</p>
+  <div class="fighter"><b>Персонаж</b>
+   <div class="stat"><span>Здоровье</span><div class="track"><div id="playerHp" class="fill hp"></div></div><strong id="playerHpText">100/100</strong></div>
+   <div class="stat"><span>Выносливость</span><div class="track"><div id="playerStamina" class="fill stamina"></div></div><strong id="playerStaminaText">100/100</strong></div>
+  </div>
+  <div class="fighter"><b id="enemyName" class="enemy-name">Титан</b>
+   <div class="stat"><span>Здоровье</span><div class="track"><div id="enemyHp" class="fill hp"></div></div><strong id="enemyHpText">100/100</strong></div>
+   <div class="stat enemy-stamina-row"><span>Выносливость</span><div class="track"><div id="enemyStamina" class="fill stamina"></div></div><strong id="enemyStaminaText">100/100</strong></div>
+  </div>
+  <div class="attack-list">
+   <button class="attack-btn" id="attackNape">Затылок — 40% попадание<small>Урон зависит от прокачки · 22 ⚡</small></button>
+   <button class="attack-btn" id="attackLegs">Ноги — 50% попадание<small>Оглушение на 1 ход · 14 ⚡</small></button>
+   <button class="attack-btn" id="attackEyes">Глаза — 45% попадание<small>Оглушение на 2 хода · 18 ⚡</small></button>
+  </div>
+  <button id="battleReplaceBlades" class="attack-btn" style="width:100%;margin-top:8px">ЗАМЕНИТЬ КЛИНКИ · 3 комплекта</button><p id="battleMessage">Выбери атаку.</p>
+ </div>
+</div>
+
+<div id="topActions">
+ <button id="skillsButton">⭐ Навыки</button>
+ <button id="musicButton">♫ Музыка: выкл.</button>
+ <button id="controlButton">Управление: кнопки</button>
+</div>
+<div id="statsHud">
+ <b id="levelLabel">Уровень 1</b> · <span id="pointsLabel">Очки: 0</span>
+ <div id="xpTrack"><div id="xpFill"></div></div>
+ <div id="xpLabel">0 / 100 XP</div>
+ <div id="quickStats">❤️ 100/100 · ⚡ 100/100</div>
+</div>
+<button id="gateAction">Открыть ворота</button>
+<div id="dialogueHint"></div>
+<button id="shadisTalkButton" type="button">ПОГОВОРИТЬ С КИТОМ ШАДИСОМ</button>
+<div id="upmStatus">
+ <div class="upm-heading"><b>⚙ УПМ · МОДЕЛЬ 845</b><span id="upmModeLabel">ГОТОВО</span></div>
+ <div class="upm-sub">Два газовых баллона · двойная катушка · стальные тросы</div>
+ <div class="upm-row"><span>Давление газа</span><strong id="gasText">1000 / 1000</strong></div><div class="upm-track"><div id="gasFill" class="upm-fill"></div></div>
+ <div class="upm-row"><span>Левый клинок</span><strong id="bladeLeftText">100%</strong></div><div class="upm-track"><div id="bladeLeftFill" class="upm-fill"></div></div>
+ <div class="upm-row"><span>Правый клинок</span><strong id="bladeRightText">100%</strong></div><div class="upm-track"><div id="bladeRightFill" class="upm-fill"></div></div>
+ <div class="upm-row"><span>Запасные комплекты</span><strong id="spareKitsText">3/3</strong></div>
+ <div class="upm-row"><span>Левый трос</span><strong id="leftHookText">Не выпущен</strong></div>
+ <div class="upm-row"><span>Правый трос</span><strong id="rightHookText">Не выпущен</strong></div>
+ <div id="upmHint">Выбери крюк, затем коснись точки зацепления.</div>
+</div>
+<button id="supplyAction" style="position:fixed;right:14px;bottom:205px;z-index:7;display:none;height:42px;padding:0 12px;background:#315d48;font-size:12px">СНАБЖЕНИЕ</button>
+<div id="upmControls">
+ <button id="hookLeft">◀ КРЮК L</button><button id="hookRight">КРЮК R ▶</button>
+ <button id="gasButton">GAS · УСКОРЕНИЕ</button><button id="releaseHooks">ОТПУСТИТЬ</button>
+ <button id="replaceBlades" style="grid-column:1/3">ЗАМЕНИТЬ КЛИНКИ</button>
+</div>
+<div id="skillPanel"><div class="skillCard">
+ <h2>⭐ Навыки персонажа</h2>
+ <p id="skillPointsText">Свободные очки: 0</p>
+ <div class="skillRow"><div>❤️ Здоровье<br><small id="hpSkillText">100 HP · 0 очков</small></div><button data-skill="hp">+1</button></div>
+ <div class="skillRow"><div>⚔️ Урон<br><small id="damageSkillText">60 урона · 0 очков</small></div><button data-skill="damage">+1</button></div>
+ <div class="skillRow"><div>⚡ Выносливость<br><small id="staminaSkillText">100 · 0 очков</small></div><button data-skill="stamina">+1</button></div>
+ <div class="skillRow"><div>♻️ Восстановление<br><small id="regenSkillText">2% в секунду · 0/10 очков</small></div><button data-skill="regen">+1</button></div>
+ <button class="close" id="closeSkills">ЗАКРЫТЬ</button>
+ </div></div>
+<div id="move">
+ <button class="blank"></button><button data-key="up">▲</button><button class="blank"></button>
+ <button data-key="left">◀</button><button data-key="down">▼</button><button data-key="right">▶</button>
+</div>
+<div id="missionBox"><div class="mission-card"><h2 id="missionHeading">МИССИЯ 1: КАДЕТСКИЙ КОРПУС</h2><p id="missionText"></p><div class="dialogueChoices" id="dialogueChoices"></div><button id="missionNext">ПРОДОЛЖИТЬ</button></div></div>
+<div id="cinematic"><h2 id="cinematicTitle">ТРОСТ, 845 ГОД</h2><div id="cinematicStage"><div class="cine-wall"><span class="wall-measure">СТЕНА · 50 М</span></div><div class="cine-gate"></div><div class="cine-colossal"><i class="giant-neck" aria-hidden="true"></i><i class="giant-arm left"></i><i class="giant-arm right"></i><i class="giant-torso-line"></i></div><div class="cine-colossal-arms"><i class="cine-colossal-arm left"></i><i class="cine-colossal-arm right"></i><i class="cine-colossal-hand left"></i><i class="cine-colossal-hand right"></i></div><span class="giant-measure">КОЛОСС · 60 М</span><div class="cine-break"></div><div class="cine-person a"></div><div class="cine-person b"></div><div class="cine-person c"></div><div class="cine-titan"></div><div class="cine-rubble r1"></div><div class="cine-rubble r2"></div><div class="cine-rubble r3"></div><div class="cine-dust"></div><div class="cine-hand"></div><div class="cine-city"></div></div><p id="cinematicText"></p><button id="cinematicNext">ДАЛЕЕ</button></div>
+<div id="gameOver" style="display:none;position:fixed;inset:0;z-index:30;background:#08090df2;align-items:center;justify-content:center;padding:22px"><div class="card"><h1>ТЫ ПОГИБ</h1><p>Ты погиб в бою. Возрождение происходит в Тросте; уровень, опыт и навыки сохраняются.</p><button class="primary" id="restartGame">ВОЗРОДИТЬСЯ В ТРОСТЕ</button></div></div>
+<div id="overlay"><div class="card">
+<h1>Attack on Titan: Survival</h1>
+<p><b>UPDATE 2.2 ALPHA — УПМ И СНАРЯЖЕНИЕ</b></p>
+<p>Создай кадета. Имя обязательно, фамилия выдаётся случайно. В Тросте доступны прототип УПМ, два крюка, газ и износ клинков. Сначала найди инструктора Кита Шадиса в кадетском корпусе.</p>
+<label>Имя персонажа</label><input id="charName" maxlength="18" autocomplete="off" placeholder="Введи имя кадета" style="width:100%;height:42px;margin:6px 0 5px;padding:8px;border-radius:8px"><small id="nameError" style="display:block;color:#e6a18d;margin:0 0 10px">Введи имя, чтобы начать игру.</small>
+<label>Пол</label><select id="charGender" style="width:100%;height:40px;margin:6px 0 12px"><option value="male">Мужской</option><option value="female">Женский</option></select>
+<label>Причёска</label><select id="charHair" style="width:100%;height:40px;margin:6px 0 12px"><option value="#594437">Тёмно-каштановые</option><option value="#24201e">Чёрные</option><option value="#b28a45">Светлые</option><option value="#8b4938">Рыжие</option></select>
+<label>Форма</label><select id="charUniform" style="width:100%;height:40px;margin:6px 0 12px"><option value="#405b49">Стандартная форма кадета</option><option value="#4b566b">Тёмно-синяя форма</option><option value="#66513e">Коричневая форма</option></select>
+<label>Цвет глаз</label><select id="charEyes" style="width:100%;height:40px;margin:6px 0 12px"><option value="#332a25">Карие</option><option value="#477c9c">Голубые</option><option value="#56804c">Зелёные</option><option value="#777777">Серые</option></select>
+<button class="primary" id="start" disabled>СОЗДАТЬ ПЕРСОНАЖА И НАЧАТЬ</button>
+</div></div>
+<script>
+(()=>{
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+let W=innerWidth,H=innerHeight,dpr=1,cameraX=0,cameraY=0,running=false,last=0,outsideNotice=false;
+let effects=[],cameraShake=0,playerStepClock=0;
+function resize(){dpr=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';ctx.setTransform(dpr,0,0,dpr,0,0);W=innerWidth;H=innerHeight}
+addEventListener('resize',resize);resize();
+
+const keys={left:false,right:false,up:false,down:false};
+document.querySelectorAll('button[data-key]').forEach(b=>{const k=b.dataset.key;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true;b.classList.add('active')});['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{keys[k]=false;b.classList.remove('active')}))});
+const keyMap={ArrowLeft:'left',a:'left',ArrowRight:'right',d:'right',ArrowUp:'up',w:'up',ArrowDown:'down',s:'down'};
+addEventListener('keydown',e=>{if(keyMap[e.key]){e.preventDefault();keys[keyMap[e.key]]=true}});
+addEventListener('keyup',e=>{if(keyMap[e.key])keys[keyMap[e.key]]=false});
+canvas.addEventListener('pointerdown',e=>{
+ if(battleActive||document.getElementById('overlay').style.display!=='none')return;
+ const rect=canvas.getBoundingClientRect(),point={x:e.clientX-rect.left+cameraX,y:e.clientY-rect.top+cameraY};
+ if(upm.hookMode){
+  e.preventDefault();const anchor=findGrappleAnchor(point);
+  if(anchor){const d=Math.hypot(anchor.x-p.x,anchor.y-p.y);upm.hooks[upm.hookMode]={x:anchor.x,y:anchor.y,length:d,kind:anchor.kind};destination=null;document.getElementById('upmHint').textContent='Крюк закреплён. Удерживай GAS для ускорения.';}
+  else document.getElementById('upmHint').textContent='Нет подходящей поверхности рядом с точкой.';
+  upm.hookMode=null;refreshUpmUI();return;
+ }
+ if(!tapMove)return;destination=point;
+});
+
+let currentMap = 'cadet';
+
+// === UPDATE 2.1: ВРЕМЯ СУТОК И ПОГОДА ===
+// Полный цикл: день 10 мин, закат 3 мин, ночь 6 мин, рассвет 3 мин.
+const DAY_CYCLE_MS = 22 * 60 * 1000;
+let worldClockMs = 0; // Начинаем с дневного времени.
+let weather = 'clear';
+let rainRemainingMs = 0;
+let nextWeatherCheckMs = 3 * 60 * 1000 + Math.random() * 2 * 60 * 1000;
+let rainDrops = [];
+function getDayPhase() {
+ const t = worldClockMs % DAY_CYCLE_MS;
+ if (t < 10*60*1000) return 'day';
+ if (t < 13*60*1000) return 'sunset';
+ if (t < 19*60*1000) return 'night';
+ return 'dawn';
+}
+function getDayPhaseLabel() {
+ return ({day:'День',sunset:'Закат',night:'Ночь',dawn:'Рассвет'})[getDayPhase()];
+}
+function updateWorldAtmosphere(dt) {
+ worldClockMs = (worldClockMs + dt) % DAY_CYCLE_MS;
+ if (weather === 'rain') {
+  rainRemainingMs -= dt;
+  if (rainRemainingMs <= 0) weather = 'clear';
+ } else {
+  nextWeatherCheckMs -= dt;
+  if (nextWeatherCheckMs <= 0) {
+   // Небольшая вероятность дождя при проверке, поэтому осадки редкие.
+   if (Math.random() < 0.12) {
+    weather = 'rain';
+    rainRemainingMs = (2 + Math.random()*2) * 60 * 1000;
+   }
+   nextWeatherCheckMs = (3 + Math.random()*2) * 60 * 1000;
+  }
+ }
+}
+function drawWorldAtmosphere() {
+ const phase = getDayPhase();
+ const tint = phase==='night' ? 'rgba(9,17,42,0.48)' : phase==='sunset' ? 'rgba(190,91,43,0.17)' : phase==='dawn' ? 'rgba(230,151,94,0.12)' : '';
+ if (tint) { ctx.fillStyle=tint; ctx.fillRect(0,0,W,H); }
+ if (weather==='rain') {
+  ctx.fillStyle='rgba(35,48,63,0.12)';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(190,211,225,0.48)';ctx.lineWidth=1;
+  for(let i=0;i<75;i++){
+   const x=(i*97 + (worldClockMs*.32))%(W+40)-20;
+   const y=(i*53 + (worldClockMs*.78))%(H+40)-20;
+   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-5,y+13);ctx.stroke();
+  }
+ }
+ ctx.fillStyle='#101820e8';ctx.fillRect(W-112,42,100,27);
+ ctx.fillStyle='#f0dfbd';ctx.font='bold 12px system-ui';ctx.textAlign='center';
+ ctx.fillText(getDayPhaseLabel()+(weather==='rain'?' · Дождь':''),W-62,60);ctx.textAlign='left';
+}
+
+
+const cadetCompound = {
+  building: {x: 400, y: 200, w: 400, h: 180},
+  yard: {x: 380, y: 400, w: 440, h: 220},
+  spawn: {x: 600, y: 500},
+  dummies: [{x: 450, y: 500},{x: 750, y: 500},{x: 600, y: 570}]
+};
+
+const world={w:16000,h:2800,buildings:[]};
+for(let y=100;y<world.h-100;y+=230)for(let x=100;x<1080;x+=260){
+ const b={x:x+(Math.random()*35-17),y:y+(Math.random()*35-17),w:90+Math.random()*35,h:80+Math.random()*35};
+ if(b.x+b.w<1260)world.buildings.push(b);
+}
+world.buildings.push({x:300,y:760,w:190,h:150,cadet:true});
+const castle={x:820,y:1010,w:260,h:220};
+const trees=[];
+for(let i=0;i<500;i++){
+ let x=80+Math.random()*(world.w-160),y=70+Math.random()*(world.h-140);
+ if(Math.abs(x-1300)<100)continue;
+ if(x<castle.x-45||x>castle.x+castle.w+45||y<castle.y-45||y>castle.y+castle.h+45)trees.push({x,y,r:(x>=9400&&x<14000?48+Math.random()*44:9+Math.random()*12),kind:Math.random()>.55?'pine':'leaf',phase:Math.random()*6});
+}
+// Дополнительные деревья на большой равнине после гигантского леса.
+// Они заметно крупнее обычных деревьев и распределены по всей пустой территории.
+const plainTrees=[];
+for(let i=0;i<190;i++){
+ const x=9550+Math.random()*4550;
+ const y=90+Math.random()*(world.h-180);
+ plainTrees.push({x,y,r:54+Math.random()*50,phase:Math.random()*6,kind:Math.random()>.5?'pine':'leaf'});
+}
+
+const cadetTrees=[];
+for(let i=0;i<60;i++){
+ let x=Math.random()*1400, y=Math.random()*800;
+ if(x>cadetCompound.building.x-40 && x<cadetCompound.building.x+cadetCompound.building.w+40 &&
+    y>cadetCompound.building.y-40 && y<cadetCompound.building.y+cadetCompound.building.h+40) continue;
+ if(x>cadetCompound.yard.x-40 && x<cadetCompound.yard.x+cadetCompound.yard.w+40 &&
+    y>cadetCompound.yard.y-40 && y<cadetCompound.yard.y+cadetCompound.yard.h+40) continue;
+ cadetTrees.push({x,y,r:12+Math.random()*14,kind:'pine',phase:Math.random()*6});
+}
+
+// === ГИГАНТСКИЙ ЛЕС ===
+const giantTrees = [];
+for (let i = 0; i < 250; i++) { // Чуть уменьшил плотность, чтобы было проще ходить
+  let x = 6200 + Math.random() * 3200;
+  let y = 100 + Math.random() * 2600;
+  giantTrees.push({
+    x, y,
+    r: 60 + Math.random() * 90, // Увеличено в 2 раза относительно ошибочно уменьшенной версии
+    trunkH: 300 + Math.random() * 260,
+    trunkW: 72 + Math.random() * 54,
+    kind: 'giant',
+    phase: Math.random() * 6
+  });
+}
+
+const gate={x:1300,centerY:900,opening:190,wall:50,height:50};
+const shiganshinaWall={x:15450,top:0,width:52};
+const p={x:0,y:0,vx:0,vy:0,faceX:0,faceY:-1};
+const upm={gas:1000,maxGas:1000,gasHeld:false,hookMode:null,hooks:{left:null,right:null},maxHookRange:450,blades:{left:100,right:100},spareKits:3,nextBlade:'left'};
+const characterAppearance={name:'',surname:'',fullName:'',gender:'male',hair:'#594437',eyes:'#332a25',coat:'#405b49'};
+const shadis={x:600,y:405,dir:Math.PI/2};
+let shadisTalked=false;
+let shadisApproachRequested=false;
+let upmUnlocked=false; // Снаряжение выдаётся только после завершения учебного боя.
+const FAMILY_CHANCES=[
+ {name:'Аккерман',chance:1},{name:'Фриц',chance:2},{name:'Йегер',chance:4},
+ {name:'Арлерт',chance:5},{name:'Браун',chance:6},{name:'Леонхарт',chance:6},
+ {name:'Зоэ',chance:7},{name:'Кирштейн',chance:9},{name:'Спрингер',chance:10},
+ {name:'Ботт',chance:10},{name:'Грайс',chance:10},{name:'Обычная фамилия',chance:28}
+];
+function rollFamilyName(){
+ // Утверждённые шансы дают 98%; оставшиеся 2% также относятся к обычной фамилии.
+ const roll=Math.random()*100;let total=0;
+ for(const family of FAMILY_CHANCES){total+=family.chance;if(roll<total)return family.name;}
+ return 'Обычная фамилия';
+}
+function setHudLocation(location){
+ const panel=document.getElementById('hud').querySelector('.panel');
+ panel.innerHTML='<b>ATTACK ON TITAN: SURVIVAL</b><br>👤 '+(characterAppearance.fullName||'Кадет')+'<br>📍 '+location;
+}
+
+const playerStats={health:100,maxHealth:100,stamina:100,maxStamina:100};
+const progression={level:1,xp:0,skillPoints:0,spent:{hp:0,damage:0,stamina:0,regen:0},damage:60};
+let tapMove=true, destination=null, gateOpen=false, musicOn=false, audioCtx=null, lastRegen=0;
+let trainingDone = false;
+const gateButton=document.getElementById('gateAction');
+const skillPanel=document.getElementById('skillPanel');
+const xpNeeded=level=>Math.floor(100*Math.pow(level,1.55));
+
+function updateHud(){
+ const hudPanel=document.getElementById('hud').querySelector('.panel');
+ if(characterAppearance.fullName&&!hudPanel.textContent.includes(characterAppearance.fullName)){const loc=currentMap==='cadet'?'Кадетский корпус (Север)':(currentMap==='trost'?'Трост':'За стенами');setHudLocation(loc);}
+ document.getElementById('levelLabel').textContent='Уровень '+progression.level;
+ document.getElementById('pointsLabel').textContent='Очки: '+progression.skillPoints;
+ const need=xpNeeded(progression.level);
+ document.getElementById('xpFill').style.width=Math.min(100,progression.xp/need*100)+'%';
+ document.getElementById('xpLabel').textContent=`${progression.xp} / ${need} XP`;
+ document.getElementById('quickStats').textContent=`❤️ ${Math.round(playerStats.health)}/${playerStats.maxHealth} · ⚡ ${Math.round(playerStats.stamina)}/${playerStats.maxStamina}`;
+ document.getElementById('skillPointsText').textContent='Свободные очки: '+progression.skillPoints;
+ document.getElementById('hpSkillText').textContent=`${playerStats.maxHealth} HP · ${progression.spent.hp} очков`;
+ document.getElementById('damageSkillText').textContent=`${progression.damage} урона · ${progression.spent.damage} очков`;
+ document.getElementById('staminaSkillText').textContent=`${playerStats.maxStamina} · ${progression.spent.stamina} очков`;
+ document.getElementById('regenSkillText').textContent=`${(2+progression.spent.regen*.5).toFixed(1)}% в секунду · ${progression.spent.regen}/10 очков`;
+}
+function gainXP(amount){
+ progression.xp+=amount;
+ while(progression.xp>=xpNeeded(progression.level)){
+  progression.xp-=xpNeeded(progression.level);progression.level++;progression.skillPoints++;
+  document.getElementById('tip').textContent=`Новый уровень: ${progression.level}! Получено 1 очко навыка.`;
+ }
+ updateHud();
+}
+function spendSkill(kind){
+ if(progression.skillPoints<=0)return;
+ const limits={hp:99,damage:99,stamina:99,regen:10};
+ if(progression.spent[kind]>=limits[kind])return;
+ progression.skillPoints--;progression.spent[kind]++;
+ if(kind==='hp'){playerStats.maxHealth=Math.round(100*(1+.02*progression.spent.hp));playerStats.health=Math.min(playerStats.maxHealth,playerStats.health+2);}
+ if(kind==='damage')progression.damage=Math.round(60*(1+.02*progression.spent.damage));
+ if(kind==='stamina'){playerStats.maxStamina=Math.round(100*(1+.025*progression.spent.stamina));playerStats.stamina=Math.min(playerStats.maxStamina,playerStats.stamina+2);}
+ updateHud();if(battleActive)refreshBattleUI();
+}
+document.querySelectorAll('[data-skill]').forEach(b=>b.addEventListener('click',()=>spendSkill(b.dataset.skill)));
+document.getElementById('skillsButton').onclick=()=>{skillPanel.style.display='flex';updateHud()};
+document.getElementById('closeSkills').onclick=()=>skillPanel.style.display='none';
+
+// Починка кнопки управления
+document.getElementById('controlButton').onclick=()=>{
+ tapMove=!tapMove;destination=null;
+ document.getElementById('controlButton').textContent=tapMove?'Управление: касание':'Управление: кнопки';
+ document.getElementById('move').style.display = tapMove ? 'none' : 'grid'; // Скрываем/показываем крестовину
+ document.getElementById('tip').textContent=tapMove?'Коснись места на карте, чтобы идти туда.':'Используй кнопки или WASD.';
+};
+
+document.getElementById('musicButton').onclick=()=>{
+ musicOn=!musicOn;document.getElementById('musicButton').textContent='♫ Музыка: '+(musicOn?'вкл.':'выкл.');
+ if(musicOn){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume();playAmbient();}catch(e){}}
+};
+function playAmbient(){
+ if(!musicOn||!audioCtx)return;
+ const notes=[110,146.83,164.81,146.83];let i=0;
+ const play=()=>{if(!musicOn||!audioCtx)return;const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=notes[i++%notes.length];gain.gain.setValueAtTime(.0001,audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(.018,audioCtx.currentTime+.5);gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+2.4);osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+2.5);setTimeout(play,2600)};play();
+}
+
+let nearbyTitan=null;
+const combatRange=105;
+let battleActive=false,battleTitan=null,stunTurns=0;
+let tutorialPractice=false,missionStage=0,cinematicStage=0,selectedDialogueReply=false;
+const residents=[];
+function clearForResident(x,y){
+ if(x<55||x>gate.x-65||y<55||y>world.h-55)return false;
+ for(const b of world.buildings)if(x>b.x-28&&x<b.x+b.w+28&&y>b.y-28&&y<b.y+b.h+28)return false;
+ if(Math.abs(x-gate.x)<55)return false;
+ if(x>castle.x-35&&x<castle.x+castle.w+35&&y>castle.y-35&&y<castle.y+castle.h+35)return false;
+ return true;
+}
+for(let i=0;i<38;i++){
+ let x,y,tries=0;
+ do{x=100+Math.random()*1080;y=90+Math.random()*(world.h-180);tries++}
+ while(!clearForResident(x,y)&&tries<300);
+ if(clearForResident(x,y))residents.push({x,y,phase:Math.random()*Math.PI*2,dir:Math.random()*Math.PI*2,walk:Math.random()>.35,bubble:'',bubbleUntil:0,chatCooldown:0,stepClock:Math.random()*500});
+}
+const titanSpecs=[
+ {type:'Обычный',height:4},{type:'Обычный',height:8},{type:'Обычный',height:12},
+ {type:'Аномальный',height:5},{type:'Аномальный',height:9},{type:'Аномальный',height:14},
+ {type:'Ползающий',height:6},{type:'Ползающий',height:9},{type:'Ползающий',height:15}
+];
+const titans=[];
+// 30 титанов равномерно распределены по внешней территории: 10 колонок × 3 ряда.
+// Область Троста (x < 1450) полностью исключена.
+for(let row=0;row<3;row++){
+ for(let col=0;col<10;col++){
+  const i=row*10+col;
+  const spec=titanSpecs[i % titanSpecs.length];
+  const cellW=(world.w-1800)/10,cellH=(world.h-200)/3;
+  const x=1600+col*cellW+180+Math.random()*(cellW-360);
+  const y=100+row*cellH+80+Math.random()*(cellH-160);
+  titans.push({
+   x,y,scale:spec.height/8,phase:Math.random()*6.28,
+   health:Math.round((spec.height<=6?100:spec.height<=9?200:350)*(0.8+Math.random()*0.4)),
+   maxHealth:0,...spec
+  });
+ }
+}
+for(const t of titans)t.maxHealth=t.health;
+function findGrappleAnchor(target){
+ if(currentMap!=='trost'||!upmUnlocked)return null;
+ let best=null,bestScore=Infinity;
+ const consider=(x,y,kind)=>{
+  const pd=Math.hypot(x-p.x,y-p.y),ad=Math.hypot(x-target.x,y-target.y);
+  if(pd>upm.maxHookRange||ad>105)return;
+  const score=ad+pd*.08;if(score<bestScore){bestScore=score;best={x,y,kind};}
+ };
+ for(const b of world.buildings)consider(Math.max(b.x,Math.min(target.x,b.x+b.w)),Math.max(b.y,Math.min(target.y,b.y+b.h)),'building');
+ for(const t of trees)consider(t.x,t.y,'tree');
+ for(const t of plainTrees)consider(t.x,t.y,'tree');
+ for(const t of giantTrees)consider(t.x,t.y,'giant-tree');
+ for(const t of titans)consider(t.x,t.y,'titan');
+ return best;
+}
+function refreshUpmUI(){
+ const gasPct=Math.max(0,upm.gas/upm.maxGas*100);
+ document.getElementById('gasText').textContent=Math.round(upm.gas)+' / '+upm.maxGas;
+ document.getElementById('upmModeLabel').textContent=upm.gasHeld?'УСКОРЕНИЕ':(upm.hooks.left&&upm.hooks.right?'ДВОЙНОЙ ТРОС':(upm.hooks.left||upm.hooks.right?'ЗАЦЕПЛЕНИЕ':'ГОТОВО'));
+ document.getElementById('leftHookText').textContent=upm.hooks.left?Math.round(upm.hooks.left.length)+' ед.':'Не выпущен';
+ document.getElementById('rightHookText').textContent=upm.hooks.right?Math.round(upm.hooks.right.length)+' ед.':'Не выпущен';
+ document.getElementById('gasFill').style.width=gasPct+'%';
+ for(const side of ['left','right']){
+  const pct=Math.max(0,upm.blades[side]),textId=side==='left'?'bladeLeftText':'bladeRightText',fillId=side==='left'?'bladeLeftFill':'bladeRightFill';
+  document.getElementById(textId).textContent=Math.round(pct)+'%';
+  const fill=document.getElementById(fillId);fill.style.width=pct+'%';fill.style.background=pct<=25?'#c64b46':pct<=55?'#d5a83d':'#65b77c';
+ }
+ document.getElementById('spareKitsText').textContent=upm.spareKits+'/3';
+ document.getElementById('hookLeft').classList.toggle('hook-selected',upm.hookMode==='left');
+ document.getElementById('hookRight').classList.toggle('hook-selected',upm.hookMode==='right');
+ document.getElementById('gasButton').classList.toggle('gas-active',upm.gasHeld);
+ document.getElementById('replaceBlades').disabled=upm.spareKits<=0||battleActive;
+ const battleReplace=document.getElementById('battleReplaceBlades');
+ if(battleReplace){battleReplace.textContent='ЗАМЕНИТЬ КЛИНКИ · '+upm.spareKits+' комплекта';battleReplace.disabled=upm.spareKits<=0;}
+}
+function selectHook(side){
+ if(currentMap!=='trost'||!upmUnlocked||battleActive)return;
+ upm.hookMode=upm.hookMode===side?null:side;
+ document.getElementById('upmHint').textContent=upm.hookMode?'Коснись здания, дерева или титана в радиусе 450 пикселей.':'Режим крюка отменён.';
+ refreshUpmUI();
+}
+document.getElementById('hookLeft').addEventListener('click',()=>selectHook('left'));
+document.getElementById('hookRight').addEventListener('click',()=>selectHook('right'));
+document.getElementById('supplyAction').addEventListener('click',()=>{
+ if(currentMap!=='trost'||Math.hypot(p.x-(castle.x+castle.w/2),p.y-(castle.y+castle.h/2))>190)return;
+ upm.gas=upm.maxGas;upm.spareKits=3;upm.blades.left=100;upm.blades.right=100;
+ document.getElementById('upmHint').textContent='Снабжение пополнено: газ и клинки восстановлены.';
+ refreshUpmUI();
+});
+document.getElementById('releaseHooks').addEventListener('click',()=>{
+ upm.hooks.left=null;upm.hooks.right=null;upm.hookMode=null;
+ document.getElementById('upmHint').textContent='Тросы отпущены. Инерция сохраняется.';refreshUpmUI();
+});
+const gasButton=document.getElementById('gasButton');
+gasButton.addEventListener('pointerdown',e=>{e.preventDefault();try{gasButton.setPointerCapture(e.pointerId);}catch(_){}if(currentMap==='trost'&&upm.gas>0){upm.gasHeld=true;refreshUpmUI();}});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>gasButton.addEventListener(ev,()=>{upm.gasHeld=false;refreshUpmUI();}));
+function replaceBladeSet(){
+ if(upm.spareKits<=0)return false;
+ upm.spareKits--;upm.blades.left=100;upm.blades.right=100;
+ document.getElementById('upmHint').textContent='Установлены два новых клинка.';
+ refreshUpmUI();return true;
+}
+document.getElementById('replaceBlades').addEventListener('click',()=>{
+ if(battleActive)return;replaceBladeSet();
+});
+document.getElementById('battleReplaceBlades').addEventListener('click',()=>{
+ if(!battleActive)return;
+ if(replaceBladeSet())document.getElementById('battleMessage').textContent='Клинки заменены. Продолжай бой!';
+ else document.getElementById('battleMessage').textContent='Запасных комплектов не осталось.';
+});
+function useBladeWear(kind){
+ let side=upm.nextBlade;if(upm.blades[side]<=0)side=side==='left'?'right':'left';
+ if(upm.blades[side]<=0)return false;
+ upm.blades[side]=Math.max(0,upm.blades[side]-(kind==='nape'?15:10));
+ upm.nextBlade=side==='left'?'right':'left';refreshUpmUI();return true;
+}
+function updateUpm(dt,ax,ay){
+ if(!upmUnlocked||(!upm.hooks.left&&!upm.hooks.right))return false;
+ const n=Math.hypot(ax,ay)||1,sx=ax/n,sy=ay/n;
+ // Гравитация и натяжение тросов: двойной крюк даёт устойчивое маятниковое движение.
+ p.vy+=.0018*dt;
+ let tensionCount=0;
+ for(const side of ['left','right']){
+  const h=upm.hooks[side];if(!h)continue;
+  const dx=h.x-p.x,dy=h.y-p.y,d=Math.hypot(dx,dy)||1;
+  if(d>h.length){
+   const excess=d-h.length,radial=(p.vx*dx/d+p.vy*dy/d);
+   const pull=Math.min(.19,excess*.004)*dt;
+   p.vx+=dx/d*pull;p.vy+=dy/d*pull;
+   if(radial>0){p.vx-=dx/d*radial*.045;p.vy-=dy/d*radial*.045;}
+   tensionCount++;
+  }
+ }
+ if(upm.gasHeld&&upm.gas>0){
+  const h=upm.hooks.left||upm.hooks.right,dx=h.x-p.x,dy=h.y-p.y,d=Math.hypot(dx,dy)||1;
+  p.vx+=(sx*.78+dx/d*.22)*.015*dt;p.vy+=(sy*.78+dy/d*.22)*.015*dt;
+  upm.gas=Math.max(0,upm.gas-.034*dt);if(upm.gas<=0)upm.gasHeld=false;
+  if(Math.random()<.55){effects.push({x:p.x+(Math.random()-.5)*10,y:p.y+3,vx:(Math.random()-.5)*.7,vy:1.1+Math.random(),life:180,maxLife:180,size:2+Math.random()*2,type:'gas'});}
+ }else{p.vx+=sx*.004*dt;p.vy+=sy*.004*dt;}
+ // Сопротивление воздуха и ограничение скорости сохраняют управляемость на телефоне.
+ const drag=Math.pow(.9985,dt);p.vx*=drag;p.vy*=drag;
+ const max=upm.gasHeld?14:(tensionCount===2?11:9),v=Math.hypot(p.vx,p.vy);
+ if(v>max){p.vx=p.vx/v*max;p.vy=p.vy/v*max;}
+ return true;
+}
+refreshUpmUI();
+function insideGate(y){return y>gate.centerY-gate.opening/2&&y<gate.centerY+gate.opening/2}
+function blocked(x,y){
+ if(currentMap === 'cadet'){
+  const b = cadetCompound.building;
+  if(x>b.x-12&&x<b.x+b.w+12&&y>b.y-12&&y<b.y+b.h+12) return true;
+  if(x<20||x>1380||y<20||y>780) return true;
+  return false;
+ } else {
+  for(const b of world.buildings)if(x>b.x-12&&x<b.x+b.w+12&&y>b.y-12&&y<b.y+b.h+12)return true;
+  if(x>castle.x-12&&x<castle.x+castle.w+12&&y>castle.y-12&&y<castle.y+castle.h+12)return true;
+  if(Math.abs(x-gate.x)<gate.wall/2+12&&(!insideGate(y)||!gateOpen))return true;
+  if(Math.abs(x-shiganshinaWall.x)<shiganshinaWall.width/2+12)return true;
+  return false;
+ }
+}
+
+function gateNear(){return Math.hypot(p.x-gate.x,p.y-gate.centerY)<155}
+gateButton.onclick=()=>{if(!gateNear())return;gateOpen=!gateOpen;gateButton.textContent=gateOpen?'Закрыть ворота':'Открыть ворота';document.getElementById('tip').textContent=gateOpen?'Ворота открыты. Люди и титаны могут пройти.':'Ворота закрыты и непроницаемы.'};
+function puff(x,y,count=4,power=1){
+ for(let i=0;i<count;i++){
+  const a=Math.random()*Math.PI*2,s=(.25+Math.random()*1.15)*power;
+  effects.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-.25,life:420+Math.random()*260,maxLife:680,size:2+Math.random()*3});
+ }
+}
+// Низкое облачко пыли от каждого шага: расползается по земле и быстро рассеивается.
+function stepDust(x,y,side=0){
+ for(let i=0;i<5;i++){
+  const a=Math.PI*2*i/5+Math.random()*.45, speed=.18+Math.random()*.42;
+  effects.push({x:x+side,y:y+Math.random()*2,vx:Math.cos(a)*speed,vy:-.08-Math.random()*.16,life:260+Math.random()*150,maxLife:410,size:3+Math.random()*3,type:'step'});
+ }
+}
+function update(dt,now){
+ updateWorldAtmosphere(dt);
+ if(document.getElementById('missionBox').style.display==='flex'){updateHud();return;}
+ let ax=(keys.right?1:0)-(keys.left?1:0),ay=(keys.down?1:0)-(keys.up?1:0);
+ if(currentMap==='cadet'&&shadisApproachRequested){const dx=shadis.x-p.x,dy=(shadis.y+28)-p.y,d=Math.hypot(dx,dy);if(d<54){shadisApproachRequested=false;destination=null;interactWithShadis();}else{ax=dx/(d||1);ay=dy/(d||1);}}
+ if(tapMove&&destination&&!shadisApproachRequested){
+  const dx=destination.x-p.x,dy=destination.y-p.y,d=Math.hypot(dx,dy);
+  if(d<9){destination=null;}else{ax=dx/d;ay=dy/d;}
+ }
+ let len=Math.hypot(ax,ay)||1;ax/=len;ay/=len;
+ if(!battleActive&&playerStats.stamina<playerStats.maxStamina){
+  const regen=(2+progression.spent.regen*.5)/100*playerStats.maxStamina;
+  playerStats.stamina=Math.min(playerStats.maxStamina,playerStats.stamina+regen*dt/1000);
+ }
+ if(ax||ay){p.faceX=ax;p.faceY=ay}
+ const movingInput=Math.hypot(ax,ay)>.05;
+ if(movingInput){
+  playerStepClock+=dt;
+  if(playerStepClock>270){playerStepClock=0;const side=(Math.random()>.5?1:-1)*5;stepDust(p.x+side,p.y+12,side*.25);}
+ }else playerStepClock=0;
+ const upmActive=currentMap==='trost'&&(upm.hooks.left||upm.hooks.right);
+ if(upmActive)updateUpm(dt,ax,ay);
+ else{const speed=2.8;p.vx+=(ax*speed-p.vx)*Math.min(1,.012*dt);p.vy+=(ay*speed-p.vy)*Math.min(1,.012*dt);}
+ const nx=p.x+p.vx*dt/16,ny=p.y+p.vy*dt/16;
+ if(!blocked(nx,p.y))p.x=nx;else p.vx=0;
+ if(!blocked(p.x,ny))p.y=ny;else p.vy=0;
+ if(currentMap === 'cadet') {
+  p.x=Math.max(20,Math.min(1380,p.x));p.y=Math.max(20,Math.min(780,p.y));
+  cameraX=Math.max(0,Math.min(1400-W,p.x-W/2));cameraY=Math.max(0,Math.min(800-H,p.y-H/2));
+  if(shadisTalked&&!trainingDone && !battleActive){
+   for(const d of cadetCompound.dummies){
+    if(Math.hypot(p.x-d.x,p.y-d.y)<32){startTrainingBattle();break;}
+   }
+  }
+   const hint=document.getElementById('dialogueHint');hint.style.display='none';hint.dataset.canTalk='0';
+  const nearShadis=Math.hypot(p.x-shadis.x,p.y-shadis.y)<165;
+  const talkButton=document.getElementById('shadisTalkButton');
+  talkButton.style.display=(!shadisTalked&&nearShadis)?'block':'none';
+  if(shadisTalked)talkButton.style.display='none';
+ } else {
+  document.getElementById('shadisTalkButton').style.display='none';
+  p.x=Math.max(20,Math.min(world.w-20,p.x));p.y=Math.max(20,Math.min(world.h-20,p.y));
+  cameraX=Math.max(0,Math.min(world.w-W,p.x-W/2));cameraY=Math.max(0,Math.min(world.h-H,p.y-H/2));
+  if(p.x>gate.x+100&&!outsideNotice){outsideNotice=true;document.getElementById('tip').textContent='За стенами Троста! Титаны бродят впереди.'}
+  if(p.x<gate.x-100&&outsideNotice){outsideNotice=false;document.getElementById('tip').textContent='Ты вернулся в Трост. Ворота позади.'}
+ }
+ for(let i=effects.length-1;i>=0;i--){
+  const e=effects[i];e.x+=e.vx*dt/16;e.y+=e.vy*dt/16;e.vy+=.012*dt;e.life-=dt;
+  if(e.life<=0)effects.splice(i,1);
+ }
+ cameraShake=Math.max(0,cameraShake-dt*.025);
+
+ if(currentMap === 'trost') {
+  for(const r of residents){
+   r.phase+=dt*.001;r.stepClock+=dt;
+   if(r.stepClock>420&&!r.flee){r.stepClock=0;puff(r.x,r.y+8,1,.3);}
+   let threat=null,td=Infinity;
+   for(const t of titans){const d=Math.hypot(t.x-r.x,t.y-r.y);if(d<td){td=d;threat=t;}}
+   if(threat&&td<280&&!r.dead){
+    const dx=r.x-threat.x,dy=r.y-threat.y,d=Math.hypot(dx,dy)||1;
+    const fleeSpeed=1.05;
+    const nxr=r.x+dx/d*fleeSpeed*dt/16,nyr=r.y+dy/d*fleeSpeed*dt/16;
+    if(clearForResident(nxr,nyr)){r.x=nxr;r.y=nyr;}
+    r.dir=Math.atan2(dy,dx);r.flee=true;
+    if(td<25){r.dead=true;r.flee=false;}
+   }else if(!r.dead){
+    r.flee=false;
+    if(Math.random()<.0018*dt/16)r.dir+=(Math.random()-.5)*1.1;
+    const strollSpeed=.48;
+    const nxr=r.x+Math.cos(r.dir)*strollSpeed*dt/16,nyr=r.y+Math.sin(r.dir)*strollSpeed*dt/16;
+    if(clearForResident(nxr,nyr)){r.x=nxr;r.y=nyr;}
+    else r.dir+=(Math.random()<.5?-1:1)*(0.8+Math.random()*.8);
+    if(!r.talkUntil||now>r.talkUntil){r.dialogue=['Good morning!','Have you seen my brother?','The walls keep us safe.','I need to buy some food.'][Math.floor(Math.random()*4)];r.bubble=r.dialogue;r.bubbleUntil=now+2600;r.talkUntil=now+4500+Math.random()*5000;}
+   }
+  }
+  for(let i=0;i<residents.length;i++){
+   const a=residents[i];
+   if(a.dead||a.flee||now<(a.chatCooldown||0))continue;
+   for(let j=i+1;j<residents.length;j++){
+    const b=residents[j];
+    if(b.dead||b.flee||now<(b.chatCooldown||0)||Math.hypot(a.x-b.x,a.y-b.y)>54)continue;
+    const exchanges=[['Have you heard the news?','Not yet. What happened?'],['The market is busy today.','I should go there later.'],['Stay close to the walls.','I know. It feels safer here.'],['Have a good day!','You too!']];
+    const line=exchanges[Math.floor(Math.random()*exchanges.length)];
+    a.bubble=line[0];b.bubble=line[1];a.bubbleUntil=b.bubbleUntil=now+3000;
+    a.chatCooldown=b.chatCooldown=now+7000+Math.random()*5000;
+    break;
+   }
+  }
+  for(const t of titans){
+   const dayPhase=getDayPhase();
+   // Ночью обычные титаны полностью замирают и не начинают погоню.
+   if(dayPhase==='night') continue;
+   t.phase+=dt*.001*(dayPhase==='sunset'?.65:1);t.stepClock=(t.stepClock||0)+dt;
+   let target={x:p.x,y:p.y},best=Math.hypot(p.x-t.x,p.y-t.y),targetResident=null;
+   for(const r of residents){if(r.dead)continue;const d=Math.hypot(r.x-t.x,r.y-t.y);if(d<best&&d<600){best=d;target={x:r.x,y:r.y};targetResident=r;}}
+   const dx=target.x-t.x,dy=target.y-t.y,distance=Math.hypot(dx,dy);
+   if(distance<600 && distance>28){
+    const chaseSpeed=(t.type==='Аномальный'?1.05:(t.type==='Ползающий'?.58:.78))*(dayPhase==='sunset'?.65:1);
+    const tx=t.x+(dx/distance)*chaseSpeed*dt/16,ty=t.y+(dy/distance)*chaseSpeed*dt/16;
+    if(!blocked(tx,t.y))t.x=tx;
+    if(!blocked(t.x,ty))t.y=ty;
+    if(t.stepClock>Math.max(260,520-t.height*12)){
+     t.stepClock=0;puff(t.x,t.y+18*t.scale,Math.max(3,Math.round(3+t.scale*2)),1.2+t.scale*.35);
+     if(Math.hypot(p.x-t.x,p.y-t.y)<450)cameraShake=Math.max(cameraShake,Math.min(4,1.2+t.scale*.8));
+    }
+   }else if(distance>=560){
+    const wanderFactor=dayPhase==='sunset'?.65:1;
+    t.x+=Math.sin(t.phase)*.16*dt/16*wanderFactor;
+    t.y+=Math.cos(t.phase*.8)*.12*dt/16*wanderFactor;
+   }
+   if(distance<=34 && !battleActive&&now>(t.ignorePlayerUntil||0)&&Math.hypot(p.x-t.x,p.y-t.y)<34)beginBattle(t);
+  }
+  if(nearbyTitan && !titans.includes(nearbyTitan))nearbyTitan=null;
+  gateButton.style.display=gateNear()?'block':'none';
+  const closeResident=residents.find(r=>!r.dead&&Math.hypot(r.x-p.x,r.y-p.y)<65);
+  const hint=document.getElementById('dialogueHint');
+  if(closeResident&&!closeResident.flee){hint.style.display='block';hint.textContent=closeResident.dialogue||'Hello there!';}else hint.style.display='none';
+ } else {
+  gateButton.style.display='none';
+  document.getElementById('dialogueHint').style.display='none';
+ }
+ const showUpm=currentMap==='trost'&&running&&upmUnlocked;
+ document.getElementById('upmControls').style.display=showUpm?'grid':'none';
+ document.getElementById('upmStatus').style.display=showUpm?'block':'none';
+ const supplyNear=currentMap==='trost'&&Math.hypot(p.x-(castle.x+castle.w/2),p.y-(castle.y+castle.h/2))<190;
+ document.getElementById('supplyAction').style.display=supplyNear?'block':'none';
+ refreshUpmUI();updateHud();
+}
+function refreshBattleUI(){
+ if(!battleTitan)return;
+ const setBar=(id,value,max)=>document.getElementById(id).style.width=Math.max(0,value/max*100)+'%';
+ document.getElementById('playerHpText').textContent=`${playerStats.health}/${playerStats.maxHealth}`;
+ document.getElementById('playerStaminaText').textContent=`${playerStats.stamina}/${playerStats.maxStamina}`;
+ document.getElementById('enemyHpText').textContent=`${battleTitan.health}/${battleTitan.maxHealth}`;
+ document.getElementById('enemyStaminaText').textContent='—';
+ setBar('playerHp',playerStats.health,playerStats.maxHealth);
+ setBar('playerStamina',playerStats.stamina,playerStats.maxStamina);
+ updateHud();
+ setBar('enemyHp',battleTitan.health,battleTitan.maxHealth);
+ setBar('enemyStamina',0,100);
+ const name=`${battleTitan.type} · ${growth(battleTitan.height)} · ${battleTitan.height} м`;
+ document.getElementById('enemyName').textContent=name;
+ document.getElementById('battleEnemyName').textContent=name;
+}
+function beginBattle(t){
+ if(battleActive)return;
+ battleActive=true;battleTitan=t;nearbyTitan=t;stunTurns=0;
+ document.getElementById('combat').style.display='flex';
+ document.getElementById('move').style.display='none';
+ document.getElementById('tip').style.display='none';
+ document.getElementById('battleMessage').textContent='Выбери атаку.';
+ refreshBattleUI();
+}
+function finishBattle(message){
+ document.getElementById('battleMessage').textContent=message;
+ if(battleTitan && battleTitan.health<=0){
+  if(currentMap === 'trost') {
+   const idx=titans.indexOf(battleTitan);
+   if(idx>=0)titans.splice(idx,1);
+  }
+  const reward=battleTitan.type==='Аномальный'?100:(battleTitan.type==='Ползающий'?20:50);
+  gainXP(reward);
+  battleTitan=null;
+  setTimeout(()=>{
+   battleActive=false;
+   document.getElementById('combat').style.display='none';
+   document.getElementById('move').style.display='grid';
+   document.getElementById('tip').style.display='block';
+   if(tutorialPractice){
+    tutorialPractice=false;
+    trainingDone=true;
+    upmUnlocked=true;
+    upm.gas=upm.maxGas;upm.blades.left=100;upm.blades.right=100;upm.spareKits=3;
+    refreshUpmUI();
+    startCinematic();
+   } else document.getElementById('tip').textContent='Титан повержен.';
+  },900);
+ }
+}
+function playerEaten(){
+ if(!running)return;
+ running=false;battleActive=false;
+ document.getElementById('combat').style.display='none';
+ document.getElementById('move').style.display='none';
+ document.getElementById('skillPanel').style.display='none';
+ document.getElementById('gameOver').style.display='flex';
+}
+document.getElementById('restartGame').addEventListener('click',()=>{
+ document.getElementById('gameOver').style.display='none';
+ currentMap='trost';p.x=540;p.y=1160;p.vx=p.vy=0;p.faceX=1;p.faceY=0;destination=null;
+ playerStats.health=playerStats.maxHealth;playerStats.stamina=playerStats.maxStamina;
+ battleTitan=null;nearbyTitan=null;outsideNotice=false;upm.hooks.left=null;upm.hooks.right=null;upm.hookMode=null;upm.gasHeld=false;running=true;last=performance.now();worldClockMs=0;weather='clear';rainRemainingMs=0;nextWeatherCheckMs=3*60*1000+Math.random()*2*60*1000;
+ cameraX=Math.max(0,Math.min(world.w-W,p.x-W/2));cameraY=Math.max(0,Math.min(world.h-H,p.y-H/2));
+ setHudLocation('Трост');refreshUpmUI();
+ document.getElementById('tip').textContent='Ты возродился в Тросте. Прогресс сохранён.';document.getElementById('tip').style.display='block';
+ document.getElementById('move').style.display=tapMove?'none':'grid';updateHud();requestAnimationFrame(loop);
+});
+
+function performAttack(kind){
+ if(!battleActive||!battleTitan)return;
+ const attacks={
+  nape:{chance:.40,damage:progression.damage,stun:0,cost:22,miss:'Затылок: промах!'},
+  legs:{chance:.50,damage:0,stun:1,cost:14,miss:'Ноги: промах!'},
+  eyes:{chance:.45,damage:0,stun:2,cost:18,miss:'Глаза: промах!'}
+ };
+ const a=attacks[kind];
+ if(upm.blades.left<=0&&upm.blades.right<=0){document.getElementById('battleMessage').textContent='Оба клинка сломаны! Нужна станция снабжения.';return;}
+ if(playerStats.stamina<a.cost){playerStats.stamina=0;refreshBattleUI();playerEaten();return;}
+ playerStats.stamina=Math.max(0,playerStats.stamina-a.cost);
+ if(playerStats.stamina<=0){refreshBattleUI();playerEaten();return;}
+ if(tutorialPractice || Math.random()<a.chance){
+  battleTitan.health=Math.max(0,battleTitan.health-a.damage);
+  if(!tutorialPractice)useBladeWear(kind);
+  if(a.stun)stunTurns=Math.max(stunTurns,a.stun);
+  const result=kind==='nape'?`Попадание в затылок! Титан получил ${progression.damage} урона.`:(kind==='legs'?'Попадание по ногам! Титан оглушён на 1 ход.':'Попадание в глаза! Титан оглушён на 2 хода.');
+  document.getElementById('battleMessage').textContent=result;
+  if(battleTitan.health<=0){refreshBattleUI();finishBattle('Титан повержен!');return;}
+ }else{
+  document.getElementById('battleMessage').textContent=a.miss;
+ }
+ refreshBattleUI();
+}
+document.getElementById('attackNape').addEventListener('click',()=>performAttack('nape'));
+document.getElementById('attackLegs').addEventListener('click',()=>performAttack('legs'));
+document.getElementById('attackEyes').addEventListener('click',()=>performAttack('eyes'));
+function growth(height){return height<=6?'Маленький':height<=9?'Средний':'Крупный'}
+
+function drawHumanFigure(x,y,angle,variant='player',scale=1,phase=0){
+ const palettes={
+  player:{coat:characterAppearance.coat,trim:'#d0b17a',pants:'#343d43',hair:characterAppearance.hair,eyes:characterAppearance.eyes,skin:'#d7b995',boot:'#252b30'},
+  resident:{coat:'#526b78',trim:'#c5a56d',pants:'#454b50',hair:'#654b3a',skin:'#d7b995',boot:'#292d30'},
+  fleeing:{coat:'#9b4d42',trim:'#e1c28b',pants:'#453b3a',hair:'#513b31',skin:'#d7b995',boot:'#292629'},
+  shadis:{coat:'#4c5948',trim:'#c4b18a',pants:'#343b3a',hair:'#77766e',eyes:'#4b4037',skin:'#d2b18e',boot:'#252b30'}
+ };
+ const c=palettes[variant]||palettes.resident;
+ const moving=variant==='player'?playerStepClock>0:true;
+ const gait=moving?phase:Math.sin(phase*.35)*.12;
+ const stride=Math.sin(gait)*4.2,armSwing=Math.sin(gait+Math.PI)*3.5;
+ const bob=moving?Math.abs(Math.sin(gait*2))*1.1:0;
+ const facingLeft=Math.cos(angle)<0;
+ ctx.save();ctx.translate(x,y);ctx.scale(facingLeft?-scale:scale,scale);
+ ctx.fillStyle='#0006';ctx.beginPath();ctx.ellipse(0,12,11,4,0,0,Math.PI*2);ctx.fill();ctx.translate(0,-bob);
+ ctx.lineCap='round';ctx.lineJoin='round';
+ ctx.strokeStyle=c.pants;ctx.lineWidth=4.7;ctx.beginPath();
+ ctx.moveTo(-3,-1);ctx.lineTo(-4-stride*.55,6);ctx.lineTo(-5-stride,11);
+ ctx.moveTo(3,-1);ctx.lineTo(4+stride*.55,6);ctx.lineTo(5+stride,11);ctx.stroke();
+ ctx.fillStyle=c.boot;ctx.beginPath();ctx.roundRect(-10-stride,9,8,4,1.5);ctx.roundRect(3+stride,9,8,4,1.5);ctx.fill();
+ ctx.fillStyle=c.coat;ctx.beginPath();ctx.moveTo(-6,-17);ctx.quadraticCurveTo(-10,-15,-9,-7);ctx.lineTo(-7,1);ctx.quadraticCurveTo(0,4,7,1);ctx.lineTo(9,-7);ctx.quadraticCurveTo(10,-15,6,-17);ctx.closePath();ctx.fill();
+ ctx.fillStyle=c.trim;ctx.fillRect(-7,-3,14,2);ctx.fillRect(-1,-16,2,17);
+ ctx.strokeStyle='#b9aa8b';ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(-6,-15);ctx.lineTo(5,1);ctx.moveTo(6,-15);ctx.lineTo(-5,1);ctx.stroke();
+ // Детализированная УПМ: пояс, диагональные ремни, два газовых баллона,
+ // катушки, выпускные клапаны и крепления клинков на бёдрах.
+ if(variant==='player'&&upmUnlocked&&currentMap==='trost'){
+  ctx.fillStyle='#252d30';ctx.fillRect(-10,-5,20,4);
+  ctx.fillStyle='#b69b68';ctx.fillRect(-2,-5,4,4);
+  ctx.strokeStyle='#c4b18a';ctx.lineWidth=2.1;ctx.beginPath();ctx.moveTo(-6,-14);ctx.lineTo(-13,-2);ctx.moveTo(6,-14);ctx.lineTo(13,-2);ctx.stroke();
+  for(const side of [-1,1]){
+   ctx.save();ctx.translate(side*10,-3);
+   ctx.fillStyle='#59666a';ctx.strokeStyle='#d1c5a4';ctx.lineWidth=.8;ctx.beginPath();ctx.roundRect(-3,-2,6,13,2);ctx.fill();ctx.stroke();
+   ctx.fillStyle='#aeb8b7';ctx.fillRect(-2,-4,4,3);ctx.fillStyle='#303a3d';ctx.fillRect(-1,-1,2,10);
+   ctx.fillStyle='#c6a66c';ctx.beginPath();ctx.arc(0,2,1.2,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#39464a';ctx.fillRect(side<0?-5:2,5,3,9);ctx.fillStyle='#c6b58e';ctx.fillRect(side<0?-5:2,5,3,1);
+   ctx.restore();
+  }
+  ctx.strokeStyle='#d7d0bc';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-9,1);ctx.lineTo(-13,10);ctx.moveTo(9,1);ctx.lineTo(13,10);ctx.stroke();
+  ctx.fillStyle='#20282c';ctx.fillRect(-15,7,5,5);ctx.fillRect(10,7,5,5);
+  ctx.strokeStyle='#c5b58e';ctx.lineWidth=1;ctx.strokeRect(-15,7,5,5);ctx.strokeRect(10,7,5,5);
+  if(upm.gasHeld){ctx.globalAlpha=.8;ctx.fillStyle='#9de4f0';ctx.beginPath();ctx.moveTo(-12,7);ctx.lineTo(-16,14+Math.sin(performance.now()/70));ctx.lineTo(-10,12);ctx.moveTo(12,7);ctx.lineTo(16,14+Math.sin(performance.now()/70));ctx.lineTo(10,12);ctx.fill();ctx.globalAlpha=1;}
+ }
+ ctx.strokeStyle=c.coat;ctx.lineWidth=4.2;ctx.beginPath();
+ ctx.moveTo(-6,-14);ctx.lineTo(-10-armSwing*.45,-7);ctx.lineTo(-11-armSwing,-1);
+ ctx.moveTo(6,-14);ctx.lineTo(10+armSwing*.45,-7);ctx.lineTo(11+armSwing,-1);ctx.stroke();
+ ctx.fillStyle=c.skin;ctx.beginPath();ctx.arc(-11-armSwing,-1,2,0,Math.PI*2);ctx.arc(11+armSwing,-1,2,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=c.skin;ctx.fillRect(-2,-20,4,5);ctx.beginPath();ctx.ellipse(0,-24,5.4,6.3,0,0,Math.PI*2);ctx.fill();
+ if(variant==='player'&&characterAppearance.gender==='female'){ctx.fillStyle=c.hair;ctx.beginPath();ctx.ellipse(-5,-19,3.2,8,-.25,0,Math.PI*2);ctx.fill();}
+ ctx.fillStyle=c.hair;ctx.beginPath();ctx.moveTo(-5,-25);ctx.quadraticCurveTo(-6,-32,0,-31);ctx.quadraticCurveTo(7,-31,6,-24);ctx.lineTo(4,-22);ctx.lineTo(3,-26);ctx.lineTo(-3,-26);ctx.lineTo(-5,-22);ctx.closePath();ctx.fill();
+ ctx.fillStyle=c.eyes||'#332a25';ctx.fillRect(-3,-25,1.3,1.1);ctx.fillRect(2,-25,1.3,1.1);
+ ctx.strokeStyle='#8b5b49';ctx.lineWidth=.8;ctx.beginPath();ctx.moveTo(0,-24);ctx.lineTo(1,-22);ctx.stroke();
+ ctx.fillStyle='#70483e';ctx.fillRect(-1,-20,2,1);
+ ctx.fillStyle='#d5c6a5';ctx.beginPath();ctx.moveTo(-4,-17);ctx.lineTo(0,-13);ctx.lineTo(4,-17);ctx.lineTo(2,-18);ctx.lineTo(0,-15);ctx.lineTo(-2,-18);ctx.fill();
+ ctx.strokeStyle='#ffffff30';ctx.lineWidth=.7;ctx.beginPath();ctx.moveTo(-6,-9);ctx.lineTo(-6,-3);ctx.moveTo(6,-9);ctx.lineTo(6,-3);ctx.stroke();
+ if(variant==='shadis'){ctx.fillStyle='#77766e';ctx.beginPath();ctx.moveTo(-4,-21);ctx.quadraticCurveTo(-7,-16,-3,-15);ctx.lineTo(0,-12);ctx.lineTo(3,-15);ctx.quadraticCurveTo(7,-18,4,-21);ctx.lineTo(2,-19);ctx.lineTo(-2,-19);ctx.closePath();ctx.fill();ctx.fillStyle='#d7c49c';ctx.font='bold 7px system-ui';ctx.textAlign='center';ctx.fillText('教',0,-37);}
+ ctx.restore();
+}
+function drawTitanFigure(t,x,y){
+ const s=t.scale,phase=t.phase*5,skin=t.type==='Аномальный'?'#b77b66':(t.type==='Ползающий'?'#927966':'#987064');
+ const dark=t.type==='Аномальный'?'#704b43':'#654b43';
+ ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+ const crawl=t.type==='Ползающий';
+ ctx.fillStyle='#0005';ctx.beginPath();ctx.ellipse(5,crawl?16:31,30,10,0,0,Math.PI*2);ctx.fill();
+ ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=skin;ctx.lineWidth=13;
+ if(crawl){
+  ctx.beginPath();ctx.moveTo(-13,5);ctx.lineTo(-29,17+Math.sin(phase)*2);ctx.lineTo(-40,20);ctx.moveTo(12,5);ctx.lineTo(28,17-Math.sin(phase)*2);ctx.lineTo(40,20);ctx.stroke();
+ }else{
+  const step=Math.sin(phase)*3;
+  ctx.beginPath();ctx.moveTo(-10,15);ctx.lineTo(-12-step,32);ctx.lineTo(-14-step,43);ctx.moveTo(10,15);ctx.lineTo(12+step,32);ctx.lineTo(14+step,43);ctx.stroke();
+  ctx.fillStyle=dark;ctx.fillRect(-23-step,40,16,5);ctx.fillRect(7+step,40,16,5);
+  ctx.fillStyle='#c28c78';ctx.beginPath();ctx.arc(-12-step,31,6,0,Math.PI*2);ctx.arc(12+step,31,6,0,Math.PI*2);ctx.fill();
+ }
+ ctx.fillStyle=skin;ctx.beginPath();ctx.ellipse(0,-2,19,25,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#c58b76';ctx.beginPath();ctx.ellipse(0,-6,13,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#d79a82';ctx.beginPath();ctx.ellipse(-7,-5,5,12,-.15,0,Math.PI*2);ctx.ellipse(7,-5,5,12,.15,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#754e46';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(-13,-12);ctx.quadraticCurveTo(0,-17,13,-12);ctx.moveTo(-11,1);ctx.quadraticCurveTo(0,5,11,1);ctx.stroke();
+ ctx.strokeStyle=skin;ctx.lineWidth=10;ctx.beginPath();
+ ctx.moveTo(-14,-13);ctx.lineTo(-24,2+Math.sin(phase)*2);ctx.lineTo(-28,15);
+ ctx.moveTo(14,-13);ctx.lineTo(24,2-Math.sin(phase)*2);ctx.lineTo(28,15);ctx.stroke();
+ ctx.fillStyle=dark;ctx.beginPath();ctx.arc(-28,16,5,0,Math.PI*2);ctx.arc(28,16,5,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=skin;ctx.fillRect(-6,-29,12,12);
+ ctx.beginPath();ctx.ellipse(0,-34,12,15,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=dark;ctx.beginPath();ctx.arc(0,-43,11,Math.PI,Math.PI*2);ctx.fill();
+ ctx.fillRect(-10,-43,4,9);ctx.fillRect(6,-43,4,9);
+ ctx.fillStyle='#f1d7b7';ctx.fillRect(-7,-37,5,3);ctx.fillRect(2,-37,5,3);
+ ctx.fillStyle='#a43e35';ctx.fillRect(-5,-36,2,2);ctx.fillRect(3,-36,2,2);
+ ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(-2,-28);ctx.lineTo(2,-28);ctx.fill();
+ ctx.fillStyle='#3d2927';ctx.beginPath();ctx.moveTo(-7,-26);ctx.quadraticCurveTo(0,-22,7,-26);ctx.lineTo(6,-23);ctx.quadraticCurveTo(0,-20,-6,-23);ctx.fill();
+ ctx.fillStyle='#ead9c4';ctx.fillRect(-4,-25,3,2);ctx.fillRect(1,-25,3,2);
+ // Дополнительная детализация анатомии титанов: ключицы, мышцы, складки и зубы.
+ ctx.strokeStyle='#6f463e';ctx.lineWidth=1.7;ctx.beginPath();
+ ctx.moveTo(-13,-14);ctx.quadraticCurveTo(-5,-9,0,-12);ctx.quadraticCurveTo(5,-9,13,-14);
+ ctx.moveTo(-11,-2);ctx.quadraticCurveTo(-5,3,-2,-1);ctx.moveTo(11,-2);ctx.quadraticCurveTo(5,3,2,-1);
+ ctx.moveTo(-8,10);ctx.quadraticCurveTo(0,14,8,10);ctx.stroke();
+ ctx.strokeStyle='#d99b82';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-9,-18);ctx.quadraticCurveTo(-5,-21,0,-18);ctx.quadraticCurveTo(5,-21,9,-18);ctx.stroke();
+ ctx.fillStyle='#f0d9bd';ctx.fillRect(-5,-25,3,2);ctx.fillRect(2,-25,3,2);ctx.fillRect(-4,-22,2,2);ctx.fillRect(2,-22,2,2);
+ ctx.strokeStyle='#744f47';ctx.lineWidth=1.2;ctx.beginPath();
+ ctx.moveTo(-10,-10);ctx.quadraticCurveTo(-5,-4,-9,3);
+ ctx.moveTo(10,-10);ctx.quadraticCurveTo(5,-4,9,3);
+ ctx.moveTo(-7,7);ctx.quadraticCurveTo(0,11,7,7);ctx.stroke();
+ ctx.restore();
+}
+function drawTrainingDummy(x,y){
+ ctx.fillStyle='#5a3e20';ctx.beginPath();ctx.ellipse(x,y+4,14,6,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#4a3018';ctx.fillRect(x-2,y-22,4,26);
+ ctx.fillStyle='#c9a566';ctx.beginPath();ctx.ellipse(x,y-20,11,14,0,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#8b6a3a';ctx.lineWidth=1.2;
+ for(let ly=y-30;ly<y-10;ly+=4){ctx.beginPath();ctx.moveTo(x-10,ly);ctx.lineTo(x+10,ly);ctx.stroke();}
+ ctx.fillStyle='#e0c28f';ctx.beginPath();ctx.arc(x,y-38,8,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#3a2a1a';ctx.lineWidth=1.5;
+ ctx.beginPath();
+ ctx.moveTo(x-5,y-40);ctx.lineTo(x-2,y-37);
+ ctx.moveTo(x-2,y-40);ctx.lineTo(x-5,y-37);
+ ctx.moveTo(x+2,y-40);ctx.lineTo(x+5,y-37);
+ ctx.moveTo(x+5,y-40);ctx.lineTo(x+2,y-37);
+ ctx.stroke();
+ ctx.strokeStyle='#4a3018';ctx.lineWidth=2.5;
+ ctx.beginPath();
+ ctx.moveTo(x-10,y-24);ctx.lineTo(x-20,y-30);
+ ctx.moveTo(x+10,y-24);ctx.lineTo(x+20,y-30);
+ ctx.stroke();
+}
+
+function draw() {
+ ctx.clearRect(0,0,W,H);
+ ctx.save();if(cameraShake>0)ctx.translate((Math.random()-.5)*cameraShake,(Math.random()-.5)*cameraShake);
+ const renderItems=[];
+
+ if(currentMap === 'cadet') {
+  ctx.fillStyle='#6b8a5a';ctx.fillRect(0,0,W,H);
+  const sx=shadis.x-cameraX,sy=shadis.y-cameraY;
+  renderItems.push({y:shadis.y,draw:()=>{
+   drawHumanFigure(sx,sy,shadis.dir,'shadis',1,0);
+   const label='КИТ ШАДИС';ctx.font='bold 11px system-ui';const tw=ctx.measureText(label).width;
+   ctx.fillStyle='#101820e8';ctx.fillRect(sx-tw/2-7,sy-57,tw+14,19);ctx.strokeStyle='#d8c59c';ctx.lineWidth=1;ctx.strokeRect(sx-tw/2-7,sy-57,tw+14,19);
+   ctx.fillStyle='#f3dfb8';ctx.textAlign='center';ctx.fillText(label,sx,sy-43);ctx.textAlign='left';
+   if(!shadisTalked&&Math.hypot(p.x-shadis.x,p.y-shadis.y)<72){ctx.strokeStyle='#f1d59c';ctx.lineWidth=2;ctx.beginPath();ctx.arc(sx,sy-5,19+Math.sin(performance.now()/180)*2,0,Math.PI*2);ctx.stroke();}
+  }});
+  
+  for(const tr of cadetTrees){
+   const tx=tr.x-cameraX,ty=tr.y-cameraY;
+   if(tx<-50||tx>W+50||ty<-50||ty>H+50)continue;
+   const underCanopy = Math.hypot(p.x - tr.x, p.y - tr.y) < tr.r;
+   renderItems.push({y:tr.y,draw:()=>{
+    ctx.fillStyle='#0004';ctx.beginPath();ctx.ellipse(tx+5,ty+8,tr.r*1.2,tr.r*.65,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#4a3520';ctx.fillRect(tx-3,ty-2,6,12);
+    ctx.globalAlpha = underCanopy ? 0.35 : 1.0;
+    ctx.fillStyle=tr.kind==='pine'?'#254a32':'#356639';ctx.beginPath();ctx.arc(tx,ty-5,tr.r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=tr.kind==='pine'?'#3a6b47':'#548b56';ctx.beginPath();ctx.arc(tx-4,ty-9,tr.r*.48,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha = 1.0;
+   }});
+  }
+  
+  const yard=cadetCompound.yard;
+  const yx=yard.x-cameraX, yy=yard.y-cameraY;
+  ctx.fillStyle='#a89070';ctx.fillRect(yx,yy,yard.w,yard.h);
+  ctx.fillStyle='rgba(130,100,65,0.35)';
+  for(let i=0;i<60;i++){
+   const px=(i*137)%yard.w; const py=(i*89)%yard.h;
+   ctx.beginPath(); ctx.ellipse(yx+px,yy+py,6+(i%5)*2,3+(i%3)*2,i*0.7,0,Math.PI*2); ctx.fill();
+  }
+  ctx.strokeStyle='#8a7a60';ctx.lineWidth=8;ctx.strokeRect(yx-4,yy-4,yard.w+8,yard.h+8);
+  for(let fx=0;fx<=yard.w;fx+=42){ ctx.fillStyle='#5a3e20'; ctx.fillRect(yx+fx-3,yy-12,6,14); }
+  ctx.strokeStyle='#7a5530';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(yx,yy-8);ctx.lineTo(yx+yard.w,yy-8);ctx.stroke();
+
+  const b = cadetCompound.building;
+  renderItems.push({y:b.y+b.h,draw:()=>{
+   const x=b.x-cameraX,y=b.y-cameraY,w=b.w,h=b.h;
+   ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(x-8,y+12,w+18,h+18);
+   ctx.fillStyle='#7a6a58';ctx.fillRect(x-8,y-8,w+16,h+16);
+   ctx.fillStyle='#d4c5a4';ctx.fillRect(x,y,w,h);
+   ctx.strokeStyle='#3a2a1a';ctx.lineWidth=4;
+   for(let i=0;i<=8;i++){ const bx=x+i*w/8; ctx.beginPath();ctx.moveTo(bx,y);ctx.lineTo(bx,y+h);ctx.stroke(); }
+   ctx.beginPath();ctx.moveTo(x,y+h*0.5);ctx.lineTo(x+w,y+h*0.5);ctx.stroke();
+   const winW=30,winH=34;
+   for(let row=0;row<2;row++)for(let col=0;col<3;col++){
+    const wxp=x+w*(0.18+col*0.32), wyp=y+h*(0.15+row*0.42);
+    ctx.fillStyle='#2a1a0e';ctx.fillRect(wxp-3,wyp-3,winW+6,winH+6);
+    const wg=ctx.createLinearGradient(wxp,wyp,wxp+winW,wyp+winH); wg.addColorStop(0,'#7a9ab0');wg.addColorStop(0.5,'#3a5570');wg.addColorStop(1,'#5a7a9a');
+    ctx.fillStyle=wg;ctx.fillRect(wxp,wyp,winW,winH);
+    ctx.strokeStyle='#4a3520';ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(wxp+winW/2,wyp);ctx.lineTo(wxp+winW/2,wyp+winH); ctx.moveTo(wxp,wyp+winH/2);ctx.lineTo(wxp+winW,wyp+winH/2); ctx.stroke();
+   }
+   const doorW=50,doorH=70; const doorX=x+w/2-doorW/2,doorY=y+h-doorH;
+   ctx.fillStyle='#a99878';ctx.fillRect(doorX-12,doorY-6,10,doorH+6); ctx.fillStyle='#a99878';ctx.fillRect(doorX+doorW+2,doorY-6,10,doorH+6);
+   ctx.fillStyle='#c8b898';ctx.fillRect(doorX-14,doorY-8,14,6);ctx.fillRect(doorX+doorW,doorY-8,14,6);
+   ctx.fillStyle='#2a1a0e';ctx.fillRect(doorX-2,doorY-2,doorW+4,doorH+4);
+   const dg=ctx.createLinearGradient(doorX,doorY,doorX+doorW,doorY); dg.addColorStop(0,'#5a3a20');dg.addColorStop(0.5,'#4a2e18');dg.addColorStop(1,'#3a2412');
+   ctx.fillStyle=dg;ctx.fillRect(doorX,doorY,doorW,doorH);
+   ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1;
+   for(let dx=doorX+8;dx<doorX+doorW;dx+=8){ ctx.beginPath();ctx.moveTo(dx,doorY+2);ctx.lineTo(dx,doorY+doorH);ctx.stroke(); }
+   ctx.fillStyle='#c9a556';ctx.beginPath();ctx.arc(doorX+doorW-8,doorY+doorH/2,3,0,Math.PI*2);ctx.fill();
+   
+   ctx.fillStyle='#5a2e1a';ctx.beginPath(); ctx.moveTo(x-20,y+6);ctx.lineTo(x+w/2,y-45);ctx.lineTo(x+w+20,y+6);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#7a3e24';ctx.beginPath(); ctx.moveTo(x-20,y+6);ctx.lineTo(x+w/2,y-45);ctx.lineTo(x+w+20,y+6); ctx.lineTo(x+w-5,y+6);ctx.lineTo(x+w/2,y-36);ctx.lineTo(x+5,y+6); ctx.closePath();ctx.fill();
+   ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1.2;
+   for(let ry=y-38;ry<y+4;ry+=7){ const halfW=((ry-(y-45))/51)*(w/2+20); ctx.beginPath();ctx.moveTo(x+w/2-halfW,ry);ctx.lineTo(x+w/2+halfW,ry);ctx.stroke(); }
+   ctx.strokeStyle='#3a1a0e';ctx.lineWidth=3; ctx.beginPath();ctx.moveTo(x+w/2,y-45);ctx.lineTo(x+w/2,y+6);ctx.stroke();
+   
+   const flagX=x+w/2,flagTopY=y-45-45;
+   ctx.strokeStyle='#4a3520';ctx.lineWidth=3; ctx.beginPath();ctx.moveTo(flagX,y-45);ctx.lineTo(flagX,flagTopY);ctx.stroke();
+   ctx.fillStyle='#2a4a6a';ctx.beginPath(); ctx.moveTo(flagX,flagTopY);ctx.lineTo(flagX+30,flagTopY+6);ctx.lineTo(flagX+30,flagTopY+20);ctx.lineTo(flagX,flagTopY+14); ctx.closePath();ctx.fill();
+   ctx.fillStyle='#e8d8a0';ctx.beginPath(); ctx.moveTo(flagX+6,flagTopY+8);ctx.lineTo(flagX+12,flagTopY+5);ctx.lineTo(flagX+24,flagTopY+9); ctx.lineTo(flagX+22,flagTopY+14);ctx.lineTo(flagX+12,flagTopY+11);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#e8d0a0';ctx.font='bold 14px system-ui';ctx.textAlign='center'; ctx.fillText('КАДЕТСКИЙ КОРПУС',x+w/2,y+h+26);ctx.textAlign='left';
+  }});
+
+  for(const d of cadetCompound.dummies){
+   const dx=d.x-cameraX,dy=d.y-cameraY;
+   if(dx<-50||dx>W+50||dy<-80||dy>H+50)continue;
+   renderItems.push({y:d.y,draw:()=>drawTrainingDummy(dx,dy)});
+  }
+ } else {
+  ctx.fillStyle='#87976a';ctx.fillRect(0,0,W,H);
+  // Широкая свободная территория после гигантского леса.
+  const plainX=9400-cameraX;ctx.fillStyle='#91a077';ctx.fillRect(plainX,-cameraY,6100,world.h);
+  // Тропа, проходящая сквозь гигантский лес и выходящая на равнину.
+  ctx.fillStyle='#b5a17d';ctx.beginPath();ctx.moveTo(6200-cameraX,1250-cameraY);ctx.quadraticCurveTo(7000-cameraX,1120-cameraY,7700-cameraX,1370-cameraY);ctx.quadraticCurveTo(8500-cameraX,1590-cameraY,9400-cameraX,1350-cameraY);ctx.lineTo(9400-cameraX,1450-cameraY);ctx.quadraticCurveTo(8500-cameraX,1690-cameraY,7650-cameraX,1470-cameraY);ctx.quadraticCurveTo(7000-cameraX,1220-cameraY,6200-cameraX,1360-cameraY);ctx.closePath();ctx.fill();
+  // Несколько разрушенных домов перед стеной Шиганшины.
+  for(const ruin of [{x:14020,y:850,w:150,h:105},{x:14480,y:1200,w:175,h:125},{x:14920,y:1780,w:145,h:100}]){
+   const rx=ruin.x-cameraX,ry=ruin.y-cameraY;if(rx>W+220||rx+ruin.w<-220||ry>H+160||ry+ruin.h<-160)continue;
+   ctx.fillStyle='#5d5146';ctx.fillRect(rx,ry,ruin.w,ruin.h);ctx.fillStyle='#80604c';ctx.fillRect(rx+8,ry+12,ruin.w-16,ruin.h-18);
+   ctx.fillStyle='#493d35';ctx.beginPath();ctx.moveTo(rx-8,ry+14);ctx.lineTo(rx+ruin.w*.45,ry-28);ctx.lineTo(rx+ruin.w+10,ry+20);ctx.lineTo(rx+ruin.w-8,ry+35);ctx.lineTo(rx+ruin.w*.5,ry+5);ctx.lineTo(rx+10,ry+40);ctx.closePath();ctx.fill();
+   ctx.fillStyle='#2d2925';ctx.fillRect(rx+ruin.w*.42,ry+ruin.h-35,22,35);ctx.fillRect(rx+25,ry+42,24,22);
+  }
+  ctx.fillStyle='#b6ad91';for(let x=0;x<1200;x+=260)ctx.fillRect(x-cameraX-35,-cameraY,70,world.h);for(let y=0;y<world.h;y+=230)ctx.fillRect(-cameraX,y-cameraY-35,gate.x,70);
+  
+  for(const tr of trees){
+   const tx=tr.x-cameraX,ty=tr.y-cameraY;
+   if(tx<-40||tx>W+40||ty<-40||ty>H+40)continue;
+   
+   const underCanopy = Math.hypot(p.x - tr.x, p.y - tr.y) < tr.r * 1.2;
+
+   renderItems.push({y:tr.y,draw:()=>{
+    ctx.fillStyle='#0003';ctx.beginPath();ctx.ellipse(tx+5,ty+8,tr.r*1.2,tr.r*.65,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#624b35';ctx.fillRect(tx-3,ty-2,6,12);
+    
+    ctx.globalAlpha = underCanopy ? 0.35 : 1.0;
+    ctx.fillStyle=tr.kind==='pine'?'#315a3e':'#477548';ctx.beginPath();ctx.arc(tx,ty-5,tr.r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#6b9255';ctx.beginPath();ctx.arc(tx-4,ty-9,tr.r*.48,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha = 1.0;
+   }});
+  }
+
+
+  // Крупные деревья равнины: широкие кроны, заметные стволы и мягкие тени.
+  for(const tr of plainTrees){
+   const tx=tr.x-cameraX,ty=tr.y-cameraY;
+   if(tx<-100||tx>W+100||ty<-100||ty>H+100)continue;
+   renderItems.push({y:tr.y,draw:()=>{
+    ctx.fillStyle='rgba(24,30,19,.22)';ctx.beginPath();ctx.ellipse(tx+10,ty+15,tr.r*1.25,tr.r*.62,-.12,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#59412b';ctx.fillRect(tx-10,ty-16,20,50);
+    ctx.fillStyle=tr.kind==='pine'?'#294d35':'#3f6b3e';
+    ctx.beginPath();ctx.arc(tx,ty-34,tr.r,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(tx-tr.r*.42,ty-20,tr.r*.58,0,Math.PI*2);ctx.arc(tx+tr.r*.4,ty-22,tr.r*.62,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#71945a';ctx.beginPath();ctx.arc(tx-tr.r*.28,ty-48,tr.r*.34,0,Math.PI*2);ctx.fill();
+   }});
+  }
+
+  for (const tr of giantTrees) {
+    const tx = tr.x - cameraX, ty = tr.y - cameraY;
+    if (tx < -220 || tx > W + 220 || ty < -620 || ty > H + 180) continue;
+
+    const underGiantCanopy = Math.hypot(p.x - tr.x, p.y - tr.y) < tr.r * 1.1;
+
+    renderItems.push({ y: tr.y, draw: () => {
+      // Огромные стволы без крон: широкая неровная форма, корни и фактура коры.
+      const half = tr.trunkW / 2;
+      const top = ty - tr.trunkH;
+      ctx.fillStyle = 'rgba(20,16,12,0.28)';
+      ctx.beginPath();
+      ctx.ellipse(tx + 20, ty + 13, half * 1.9, 23, -0.08, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Корни у основания.
+      ctx.fillStyle = '#382519';
+      ctx.beginPath();
+      ctx.moveTo(tx - half * .48, ty - 24);
+      ctx.quadraticCurveTo(tx - half * 1.05, ty - 4, tx - half * 1.65, ty + 12);
+      ctx.lineTo(tx - half * 1.15, ty + 18);
+      ctx.quadraticCurveTo(tx - half * .55, ty + 5, tx, ty + 8);
+      ctx.quadraticCurveTo(tx + half * .6, ty + 8, tx + half * 1.55, ty + 18);
+      ctx.lineTo(tx + half * 1.8, ty + 8);
+      ctx.quadraticCurveTo(tx + half * .9, ty - 9, tx + half * .5, ty - 24);
+      ctx.closePath(); ctx.fill();
+
+      // Основной силуэт слегка сужается кверху и имеет неровные края.
+      const bark = ctx.createLinearGradient(tx - half, 0, tx + half, 0);
+      bark.addColorStop(0, '#382317');
+      bark.addColorStop(.18, '#68452b');
+      bark.addColorStop(.43, '#8a6240');
+      bark.addColorStop(.7, '#654128');
+      bark.addColorStop(1, '#2f1d13');
+      ctx.fillStyle = bark;
+      ctx.beginPath();
+      ctx.moveTo(tx - half * .72, ty + 7);
+      ctx.quadraticCurveTo(tx - half * 1.08, ty - tr.trunkH * .35, tx - half * .82, top + 25);
+      ctx.quadraticCurveTo(tx - half * .72, top + 3, tx - half * .35, top);
+      ctx.quadraticCurveTo(tx + half * .18, top - 5, tx + half * .68, top + 12);
+      ctx.quadraticCurveTo(tx + half * 1.02, ty - tr.trunkH * .55, tx + half * .83, ty - 3);
+      ctx.quadraticCurveTo(tx + half * 1.12, ty + 5, tx + half * .58, ty + 9);
+      ctx.closePath(); ctx.fill();
+
+      // Светлая боковая грань и глубокие вертикальные борозды коры.
+      ctx.strokeStyle = 'rgba(190,139,85,0.42)'; ctx.lineWidth = Math.max(4, half * .12);
+      ctx.beginPath();
+      ctx.moveTo(tx - half * .42, ty - 8);
+      ctx.quadraticCurveTo(tx - half * .58, ty - tr.trunkH * .5, tx - half * .25, top + 18);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(24,14,9,0.62)'; ctx.lineWidth = Math.max(3, half * .07);
+      for (let k = -2; k <= 2; k++) {
+        const offset = k * half * .28;
+        ctx.beginPath();
+        ctx.moveTo(tx + offset, ty + 2);
+        ctx.bezierCurveTo(tx + offset - 7, ty - tr.trunkH * .32, tx + offset + 5, top + tr.trunkH * .3, tx + offset * .82, top + 15);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }});
+  }
+
+  const wx=gate.x-cameraX,top=gate.centerY-gate.opening/2-cameraY,bottom=gate.centerY+gate.opening/2-cameraY;
+  ctx.fillStyle='#777b79';ctx.fillRect(wx-gate.wall/2,-cameraY,gate.wall,gate.centerY-gate.opening/2);ctx.fillRect(wx-gate.wall/2,gate.centerY+gate.opening/2-cameraY,gate.wall,world.h-(gate.centerY+gate.opening/2));
+  ctx.fillStyle='#555d5e';ctx.fillRect(wx-24,top-12,48,24);ctx.fillRect(wx-24,bottom-12,48,24);
+  ctx.fillStyle='#c0a477';ctx.fillRect(wx-38,top-24,76,14);ctx.fillRect(wx-38,bottom+10,76,14);
+  if(!gateOpen){ctx.fillStyle='#514b40';ctx.fillRect(wx-15,top+4,30,bottom-top-8);ctx.fillStyle='#8a7658';for(let gy=top+12;gy<bottom-8;gy+=22)ctx.fillRect(wx-14,gy,28,3);}
+  else{ctx.fillStyle='#514b40';ctx.fillRect(wx-44,top+4,28,bottom-top-8);ctx.fillRect(wx+16,top+4,28,bottom-top-8);}
+  ctx.fillStyle='#d8c9a7';ctx.font='bold 11px system-ui';ctx.fillText('50 м',wx+42,top+8);
+  ctx.fillStyle='#e0d0aa';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText('ВОРОТА ТРОСТА',wx,top-34);ctx.textAlign='left';
+  // Внешняя стена Шиганшины: та же высота, толщина и каменная кладка, что и стена Троста.
+  const sw=shiganshinaWall.x-cameraX;ctx.fillStyle='#777b79';ctx.fillRect(sw-shiganshinaWall.width/2,-cameraY,shiganshinaWall.width,world.h);
+  ctx.fillStyle='#8c8d84';for(let sy=20;sy<world.h;sy+=42){ctx.fillRect(sw-shiganshinaWall.width/2,sy-cameraY,shiganshinaWall.width,3);}
+  ctx.fillStyle='#c0a477';ctx.fillRect(sw-39,-cameraY+8,78,14);ctx.fillRect(sw-39,world.h-cameraY-22,78,14);
+  ctx.fillStyle='#e0d0aa';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('СТЕНА ШИГАНШИНЫ',sw+2,34-cameraY);ctx.textAlign='left';
+
+  for(const b of world.buildings){
+   const x=b.x-cameraX,y=b.y-cameraY,w=b.w,h=b.h;
+   if(x>W||y>H||x+w<0||y+h<0)continue;
+   renderItems.push({y:b.y+b.h,draw:()=>{
+    if(b.cadet){
+     ctx.fillStyle='#0005';ctx.fillRect(x-8,y+12,w+18,h+15);
+     ctx.fillStyle='#817d70';ctx.fillRect(x-8,y-8,w+16,h+16);
+     ctx.fillStyle='#c5b28f';ctx.fillRect(x,y,w,h);
+     ctx.fillStyle='#554b40';ctx.beginPath();ctx.moveTo(x-12,y+8);ctx.lineTo(x+w/2,y-34);ctx.lineTo(x+w+12,y+8);ctx.closePath();ctx.fill();
+     ctx.fillStyle='#785143';ctx.fillRect(x+12,y+12,w-24,h-24);
+     ctx.fillStyle='#d8c49a';ctx.fillRect(x+24,y+25,30,25);ctx.fillRect(x+w-54,y+25,30,25);
+     ctx.fillStyle='#382d27';ctx.fillRect(x+w/2-15,y+h-52,30,52);
+     ctx.fillStyle='#e4d2a8';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('КАДЕТСКИЙ КОРПУС',x+w/2,y+h+25);ctx.textAlign='left';
+     return;
+    }
+    ctx.fillStyle='#0003';ctx.beginPath();ctx.roundRect(x-5,y+7,w+14,h+13,7);ctx.fill();
+    ctx.fillStyle='#71845d';ctx.beginPath();ctx.roundRect(x-9,y-9,w+18,h+18,7);ctx.fill();
+    ctx.fillStyle='#a99b7c';ctx.beginPath();ctx.roundRect(x-3,y-3,w+6,h+6,4);ctx.fill();
+    ctx.fillStyle='#d0b98d';ctx.fillRect(x+5,y+8,w-10,h-16);
+    ctx.fillStyle='#89745d';ctx.fillRect(x+5,y+h-19,w-10,11);
+    ctx.fillStyle='#e0cda8';ctx.fillRect(x+10,y+13,w-20,h-36);
+    ctx.fillStyle='#493f39';ctx.beginPath();ctx.moveTo(x-3,y+8);ctx.lineTo(x+w*.5,y-12);ctx.lineTo(x+w+3,y+8);ctx.lineTo(x+w+3,y+h-12);ctx.lineTo(x+w*.5,y+h-30);ctx.lineTo(x-3,y+h-12);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#795044';ctx.beginPath();ctx.moveTo(x+4,y+8);ctx.lineTo(x+w*.5,y-6);ctx.lineTo(x+w-4,y+8);ctx.lineTo(x+w-4,y+h-13);ctx.lineTo(x+w*.5,y+h-34);ctx.lineTo(x+4,y+h-13);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#a66b50';ctx.lineWidth=2;
+    for(let k=1;k<5;k++){const yy=y+9+k*(h-25)/5;ctx.beginPath();ctx.moveTo(x+8,yy);ctx.lineTo(x+w-8,yy);ctx.stroke();}
+    ctx.strokeStyle='#4d3c35';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x+w*.5,y-7);ctx.lineTo(x+w*.5,y+h-34);ctx.stroke();
+    ctx.fillStyle='#62554a';ctx.fillRect(x+w-25,y+4,13,18);ctx.fillStyle='#a17d61';ctx.fillRect(x+w-27,y+2,17,5);
+    const doorX=x+w*.5-8,doorY=y+h-28;ctx.fillStyle='#49372d';ctx.fillRect(doorX,doorY,16,25);ctx.fillStyle='#c9a66c';ctx.beginPath();ctx.arc(doorX+12,doorY+13,1.5,0,Math.PI*2);ctx.fill();
+    for(const wx2 of [x+17,x+w-34]){const wy2=y+h*.48;ctx.fillStyle='#6a4937';ctx.fillRect(wx2-2,wy2-2,19,18);ctx.fillStyle='#f0d99b';ctx.fillRect(wx2,wy2,15,14);ctx.fillStyle='#8a6848';ctx.fillRect(wx2+6,wy2,2,14);ctx.fillRect(wx2,wy2+6,15,2);}
+    ctx.strokeStyle='#e3c99b';ctx.lineWidth=2;ctx.strokeRect(x+5,y+8,w-10,h-16);
+   }});
+  }
+  {
+   const x=castle.x-cameraX,y=castle.y-cameraY;
+   renderItems.push({y:castle.y+castle.h,draw:()=>{
+    ctx.fillStyle='#0004';ctx.fillRect(x-8,y+8,castle.w+16,castle.h+12);
+    ctx.fillStyle='#77766e';ctx.fillRect(x,y,castle.w,castle.h);ctx.fillStyle='#a49a83';ctx.fillRect(x+18,y+18,castle.w-36,castle.h-36);
+    ctx.fillStyle='#5b554a';ctx.fillRect(x+castle.w/2-24,y+castle.h-62,48,62);
+    ctx.fillStyle='#c3b18c';ctx.fillRect(x+35,y+35,35,28);ctx.fillRect(x+castle.w-70,y+35,35,28);
+    ctx.fillStyle='#f5e6bd';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('ЗАМОК СНАБЖЕНИЯ',x+castle.w/2,y-10);ctx.textAlign='left';
+   }});
+  }
+  for(const r of residents){
+   if(r.dead)continue;
+   const x=r.x-cameraX,y=r.y-cameraY;
+   if(x<-35||x>W+35||y<-35||y>H+35)continue;
+   renderItems.push({y:r.y,draw:()=>{
+    drawHumanFigure(x,y,r.dir,r.flee?'fleeing':'resident',1,r.phase*5);
+    if(r.bubble&&r.bubbleUntil>performance.now()){
+     const msg=r.bubble.length>26?r.bubble.slice(0,24)+'…':r.bubble;
+     ctx.font='10px system-ui';const bw=Math.min(150,ctx.measureText(msg).width+14);
+     ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(x-bw/2,y-43,bw,21,6);ctx.fill();
+     ctx.fillStyle='#263238';ctx.textAlign='center';ctx.fillText(msg,x,y-29);ctx.textAlign='left';
+    }
+   }});
+  }
+  for(const t of titans){
+   let x=t.x-cameraX,y=t.y-cameraY;if(x<-100||x>W+100||y<-100||y>H+100)continue;
+   renderItems.push({y:t.y,draw:()=>{
+    drawTitanFigure(t,x,y);
+    const s=t.scale,ry=43*s;
+    const label=`${t.type} · ${growth(t.height)} · ${t.height} м`;
+    ctx.font='bold 12px system-ui';const tw=ctx.measureText(label).width;
+    ctx.fillStyle='#101820e8';ctx.fillRect(x-tw/2-6,y-ry-28,tw+12,20);
+    ctx.strokeStyle='#ffffff65';ctx.lineWidth=1;ctx.strokeRect(x-tw/2-6,y-ry-28,tw+12,20);
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,x,y-ry-14);ctx.textAlign='left';
+   }});
+  }
+ }
+ {
+  const px=p.x-cameraX,py=p.y-cameraY;
+  renderItems.push({y:p.y,draw:()=>{
+   drawHumanFigure(px,py,Math.atan2(p.faceY,p.faceX),'player',1,playerStepClock*.025);
+   if(characterAppearance.fullName){const label=characterAppearance.fullName;ctx.font='bold 11px system-ui';const tw=ctx.measureText(label).width;ctx.fillStyle='#101820e8';ctx.fillRect(px-tw/2-7,py-53,tw+14,18);ctx.strokeStyle='#ffffff70';ctx.lineWidth=1;ctx.strokeRect(px-tw/2-7,py-53,tw+14,18);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(label,px,py-40);ctx.textAlign='left';}
+  }});
+ }
+ renderItems.sort((a,b)=>a.y-b.y);
+ for(const item of renderItems)item.draw();
+ if(currentMap==='trost')for(const side of ['left','right']){
+  const h=upm.hooks[side];if(!h)continue;
+  const px=p.x-cameraX,py=p.y-cameraY,hx=h.x-cameraX,hy=h.y-cameraY;
+  const sx=px+(side==='left'?-7:7),sy=py-11;
+  ctx.strokeStyle='#101820';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(hx,hy);ctx.stroke();
+  ctx.strokeStyle=side==='left'?'#d9d5c9':'#a9c7d2';ctx.lineWidth=1.55;ctx.shadowColor='#dceeff';ctx.shadowBlur=4;
+  ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(hx,hy);ctx.stroke();ctx.shadowBlur=0;
+  ctx.strokeStyle='#ffffff88';ctx.lineWidth=.55;ctx.beginPath();ctx.moveTo(sx+1,sy);ctx.lineTo(hx+1,hy);ctx.stroke();
+  ctx.fillStyle='#4b555a';ctx.beginPath();ctx.arc(hx,hy,5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#e2d6b8';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.strokeStyle='#d7d0bf';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hx-4,hy);ctx.lineTo(hx+3,hy+3);ctx.lineTo(hx+6,hy-1);ctx.stroke();
+ }
+ for(const e of effects){
+  const ex=e.x-cameraX,ey=e.y-cameraY,alpha=Math.max(0,e.life/e.maxLife);
+  if(e.type==='gas'){ctx.globalAlpha=alpha*.65;ctx.fillStyle='#a8e9f5';ctx.beginPath();ctx.arc(ex,ey,e.size*(1+(1-alpha)),0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}else if(e.type==='step'){
+   const spread=1+(1-alpha)*1.8;
+   ctx.globalAlpha=alpha*.34;ctx.fillStyle='#c9bea3';ctx.beginPath();ctx.ellipse(ex,ey,e.size*spread*1.65,e.size*spread*.62,0,0,Math.PI*2);ctx.fill();
+   ctx.globalAlpha=alpha*.2;ctx.beginPath();ctx.ellipse(ex-2,ey-1,e.size*spread*1.15,e.size*spread*.42,-.12,0,Math.PI*2);ctx.fill();
+  }else{
+   ctx.globalAlpha=alpha*.55;ctx.fillStyle='#d8d0b7';ctx.beginPath();ctx.arc(ex,ey,e.size*(1+(1-alpha)),0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+ }
+ drawWorldAtmosphere();
+ ctx.restore();
+ ctx.fillStyle='#fff';ctx.font='12px system-ui';ctx.textAlign='right';ctx.fillText('N ▲',W-42,28);ctx.textAlign='left';
+ if(currentMap === 'cadet') {
+  ctx.fillStyle='#101820e8';ctx.fillRect(10, 100, 200, 30);
+  ctx.fillStyle='#e0d0aa';ctx.font='bold 14px system-ui';ctx.textAlign='left';ctx.fillText('Кадетский корпус (Север)', 20, 120);
+ }
+ ctx.restore();
+}
+
+function loop(now){if(!running)return;let dt=Math.min(32,now-last);last=now;if(!battleActive)update(dt,now);draw();requestAnimationFrame(loop)}
+
+function showMissionStep(step){
+ missionStage=step;selectedDialogueReply=false;
+ const box=document.getElementById('missionBox');box.style.display='flex';
+ const h=document.getElementById('missionHeading'),t=document.getElementById('missionText'),b=document.getElementById('missionNext');
+ const stages=[
+  ['ИНСТРУКТОР ШАДИС','Шадис: «Слушать внимательно! Сегодня проверим вашу подготовку. Управляй кадетом и подойди к тренировочному манекену».'],
+  ['ОСНОВЫ ТРЕНИРОВКИ','Шадис: «Манекен имитирует цель. В настоящем бою нужно оценивать дистанцию и выбирать момент для удара. Подойди к манекену, чтобы начать практику».'],
+  ['ПРАКТИЧЕСКИЙ БОЙ','Шадис: «Используй три доступных приёма. Затылок наносит урон, ноги и глаза позволяют оглушить противника. Следи за выносливостью!»']
+ ];
+ h.textContent=stages[step][0];t.textContent=stages[step][1];
+ b.textContent=step===2?'К ТРЕНИРОВКЕ':'ПРОДОЛЖИТЬ';b.disabled=true;
+ const choices=document.getElementById('dialogueChoices');choices.innerHTML='';
+ const replies=step===0?[
+  ['Так точно, инструктор!','Шадис: «Вот это настрой. Дисциплина — основа выживания. Встань в строй и слушай внимательно».'],
+  ['Я готов к тренировке.','Шадис: «Посмотрим на деле. Сначала изучишь манекен, затем перейдёшь к практическому бою».'],
+  ['Можно задать вопрос?','Шадис: «Вопросы задавай по делу. Сейчас главное — понять основы и внимательно выполнять задания».']
+ ]:step===1?[
+  ['Понял. Подойду к манекену.','Шадис: «Хорошо. Подойди вплотную к манекену — тогда начнётся практическая часть».'],
+  ['Я буду осторожен.','Шадис: «Осторожность важна, но на тренировке не медли. Следи за дистанцией и моментом удара».'],
+  ['Что делать при промахе?','Шадис: «Не теряй равновесие. Отступи, восстанови позицию и попробуй снова. Не трать силы впустую».']
+ ]:[
+  ['Целиться в затылок!','Шадис: «Верно. Это главная цель. Но сначала создай безопасную возможность для атаки».'],
+  ['Сначала обездвижить титана.','Шадис: «Разумный подход. Атака по ногам может выиграть тебе время для следующего удара».'],
+  ['Я понял правила боя.','Шадис: «Тогда докажи это на практике. Следи за выносливостью и выбирай атаку с умом».']
+ ];
+ replies.forEach(([reply,response])=>{
+  const btn=document.createElement('button');btn.type='button';btn.textContent=reply;
+  btn.style.pointerEvents='auto';btn.style.touchAction='manipulation';btn.style.position='relative';btn.style.zIndex='2';
+  btn.addEventListener('click',()=>{
+   selectedDialogueReply=true;t.textContent=response;b.disabled=false;
+   choices.querySelectorAll('button').forEach(x=>{x.disabled=false;x.style.outline='';x.style.background='#30434d';});
+   btn.style.outline='2px solid #e8d3a8';btn.style.background='#52634d';
+  });
+  choices.appendChild(btn);
+ });
+}
+function interactWithShadis(){
+ if(currentMap!=='cadet'||shadisTalked||battleActive)return false;
+ const distance=Math.hypot(p.x-shadis.x,p.y-shadis.y);
+ if(distance>62){shadisApproachRequested=true;destination=null;document.getElementById('tip').textContent='Подходим к инструктору Киту Шадису…';return false;}
+ shadisTalked=true;shadisApproachRequested=false;destination=null;
+ document.getElementById('shadisTalkButton').style.display='none';
+ document.getElementById('tip').textContent='Ты подошёл к инструктору. Выслушай Кита Шадиса.';showMissionStep(0);return true;
+}
+const shadisTalkButton=document.getElementById('shadisTalkButton');
+shadisTalkButton.addEventListener('click',e=>{e.preventDefault();interactWithShadis();});
+
+function startTrainingBattle(){
+ document.getElementById('missionBox').style.display='none';
+ const practice={x:p.x+90,y:p.y-25,scale:.65,phase:0,health:60,maxHealth:60,type:'Обычный',height:4};
+ tutorialPractice=true;beginBattle(practice);
+ document.getElementById('battleMessage').textContent='Учебный бой: целься в затылок!';
+ document.getElementById('attackNape').innerHTML='Затылок — учебный удар<small>Попадание гарантировано · 22 ⚡</small>';
+}
+function startCinematic(){
+ cinematicStage=0;document.getElementById('cinematic').style.display='flex';renderCinematic();
+}
+function renderCinematic(){
+ const title=document.getElementById('cinematicTitle'),text=document.getElementById('cinematicText'),stage=document.getElementById('cinematicStage'),btn=document.getElementById('cinematicNext');
+ const giant=stage.querySelector('.cine-colossal'),crack=stage.querySelector('.cine-break'),gateArt=stage.querySelector('.cine-gate'),people=stage.querySelectorAll('.cine-person'),titan=stage.querySelector('.cine-titan');
+ stage.style.display='block';stage.dataset.scene=String(cinematicStage);
+ giant.style.display=cinematicStage>=1?'block':'none';
+ crack.style.display=cinematicStage===2?'block':'none';gateArt.style.opacity=cinematicStage>=2?'.2':'1';
+ people.forEach(el=>el.style.display=cinematicStage>=3?'block':'none');titan.style.display=cinematicStage>=3?'block':'none';
+ const scenes=[
+  ['ТРОСТ, 845 ГОД','За стенами человечества начинается обычный день. Но спокойствие скоро закончится.'],
+  ['ОН ВЫШЕ СТЕНЫ','Камера смотрит на гигантскую стену снизу. Сначала над зубцами показывается голова Колоссального титана, затем его плечи и огромная рука. Его рост — 60 метров при высоте стены 50 метров: он выше стены всего на 10 метров, а не в несколько раз.'],
+  ['УДАР КОЛОССАЛЬНОГО','Колоссальный титан поднимает огромную ногу и с силой пинает ворота. Каменная кладка трескается, створки разлетаются, тяжёлые обломки падают на улицу. Пыльная волна прокатывается по Шиганшине.'],
+  ['ПРОЛОМ. ТИТАНЫ ВХОДЯТ','Сквозь пролом один за другим протискиваются титаны. Люди бросаются бежать. Титан хватает убегающего человека и подносит его ко рту; сцена показана силуэтами, без натуралистичных подробностей.'],
+  ['ТРОСТ — НОВОЕ НАЧАЛО','После падения Шиганшины ты оказываешься в Тросте. Здесь начинается твоя история выживания.']
+ ];
+ title.textContent=scenes[cinematicStage][0];text.textContent=scenes[cinematicStage][1];btn.textContent=cinematicStage===4?'НАЧАТЬ В ТРОСТЕ':'ДАЛЕЕ';
+}
+document.getElementById('missionNext').addEventListener('click',()=>{if(!selectedDialogueReply)return;if(missionStage<2)showMissionStep(missionStage+1);else {document.getElementById('missionBox').style.display='none';document.getElementById('tip').textContent='Подойди к тренировочному манекену.';}});
+document.getElementById('cinematicNext').addEventListener('click',()=>{
+ if(cinematicStage<4){cinematicStage++;renderCinematic();return;}
+ document.getElementById('cinematic').style.display='none';
+ 
+ currentMap = 'trost';
+ p.x=540;p.y=1160;p.vx=p.vy=0;p.faceX=1;p.faceY=0;destination=null;
+ cameraX=Math.max(0,p.x-W/2);cameraY=Math.max(0,p.y-H/2);
+ setHudLocation('Трост');
+ document.getElementById('tip').textContent='Шадис выдал тебе УПМ и три запасных комплекта клинков. Освой крюки, газ и инерцию!';
+ document.getElementById('tip').style.display='block';
+ setHudLocation('Трост');
+ document.getElementById('attackNape').innerHTML='Затылок — 40% попадание<small>Урон зависит от прокачки · 22 ⚡</small>';
+});
+const nameInput=document.getElementById('charName'),startButton=document.getElementById('start'),nameError=document.getElementById('nameError');
+function validateCharacterName(){const valid=nameInput.value.trim().length>0;startButton.disabled=!valid;nameError.textContent=valid?'Фамилия будет назначена случайно.':'Введи имя, чтобы начать игру.';nameError.style.color=valid?'#b9d4ae':'#e6a18d';}
+nameInput.addEventListener('input',validateCharacterName);validateCharacterName();
+startButton.addEventListener('click',()=>{
+ const enteredName=nameInput.value.trim();if(!enteredName){validateCharacterName();nameInput.focus();return;}
+ characterAppearance.name=enteredName;characterAppearance.surname=rollFamilyName();characterAppearance.fullName=characterAppearance.name+' '+characterAppearance.surname;
+ characterAppearance.gender=document.getElementById('charGender').value;characterAppearance.hair=document.getElementById('charHair').value;characterAppearance.eyes=document.getElementById('charEyes').value;characterAppearance.coat=document.getElementById('charUniform').value;
+ document.getElementById('overlay').style.display='none';
+ document.getElementById('gameOver').style.display='none';
+ running=true;last=performance.now();
+ currentMap = 'cadet';
+ p.x = cadetCompound.spawn.x;
+ p.y = cadetCompound.spawn.y;
+ p.vx=p.vy=0;
+ cameraX=Math.max(0,Math.min(1400-W,p.x-W/2));
+ cameraY=Math.max(0,Math.min(800-H,p.y-H/2));
+ setHudLocation('Кадетский корпус (Север)');
+ shadisTalked=false;trainingDone=false;shadisApproachRequested=false;upmUnlocked=false;
+ setHudLocation('Кадетский корпус (Север)');
+ document.getElementById('tip').textContent='Подойди к Киту Шадису. Нажми кнопку взаимодействия — инструктор сам начнёт разговор.';
+ refreshUpmUI();requestAnimationFrame(loop);
+});
+updateHud();document.getElementById('controlButton').textContent='Управление: касание';
+document.getElementById('move').style.display = 'none'; // Скрываем крестовину при старте
+cameraX=Math.max(0,Math.min(1400-W,cadetCompound.spawn.x-W/2));
+cameraY=Math.max(0,Math.min(800-H,cadetCompound.spawn.y-H/2));
+draw();
+})();
+</script>
+<!-- Update 2.2 Detail Build: Shadis mobile interaction fix + unlockable detailed ODM gear -->
+</body></html>
