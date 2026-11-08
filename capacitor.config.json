@@ -1,0 +1,9 @@
+{
+  "appId": "com.survival.attackontitan",
+  "appName": "Attack on Titan: Survival",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
